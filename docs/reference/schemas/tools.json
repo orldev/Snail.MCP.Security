@@ -1,0 +1,92 @@
+[
+  {
+    "name": "security_scan",
+    "description": "Scan the task\u0027s working copy for security problems and get back what blocks the work. The checks are\npackages, secrets, config and code: packages with a published vulnerability (NuGet from NuGet\u0027s own advisories, every other ecosystem by\nTrivy), secrets written into files, insecure Dockerfile, compose and Kubernetes settings, and insecure code found\nby Semgrep. Each finding carries a severity \u2014 critical, high, medium, low or unknown \u2014 where it is, the version that fixes a package when\none is known, and the ENS measures and NIS2 letters it falls under. The scan is clean when nothing is critical or\nhigh and every check ran. The answer names the 20 worst findings and how this scan compares with the task\u0027s scan\nbefore it: fixed, new, remaining. A scan takes up to 900 seconds; scans run one at a time.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "checks": {
+          "description": "Which checks to run, any of packages, secrets, config and code; every one when not given.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "default": null
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "skill": null
+  },
+  {
+    "name": "security_findings",
+    "description": "Read the findings of the task\u0027s last scan page by page, worst first, with where each one is, what fixes it and\nthe ENS measures and NIS2 letters it falls under. Narrow by severity and by check. A page holds 20 findings unless\nasked for more, at most 100.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "severity": {
+          "description": "Only findings this severe or worse: critical, high, medium, low or unknown; all when not given.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "check": {
+          "description": "Only findings of one check: packages, secrets, config and code; all when not given.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "offset": {
+          "description": "How many findings to skip, for the next page; 0 when not given.",
+          "type": "integer",
+          "default": 0
+        },
+        "limit": {
+          "description": "How many findings one page holds; 20 when not given, at most 100.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "default": null
+        }
+      }
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "skill": null
+  },
+  {
+    "name": "security_diagnose",
+    "description": "Say whether this server can scan at all: Nomad\u0027s version, the scanner images, the network they run in and the\nhosts the egress proxy lets through. Changes nothing.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    },
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    },
+    "skill": null
+  }
+]

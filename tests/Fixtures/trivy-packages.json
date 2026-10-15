@@ -1,0 +1,2065 @@
+{
+  "SchemaVersion": 2,
+  "Trivy": {
+    "Version": "0.76.0"
+  },
+  "ReportID": "01a13cff-f250-746c-b8a2-443cf3e6f25b",
+  "CreatedAt": "2026-10-15T00:39:29.104291375Z",
+  "ArtifactName": "/src",
+  "ArtifactType": "filesystem",
+  "Results": [
+    {
+      "Target": "packages.lock.json",
+      "Class": "lang-pkgs",
+      "Type": "nuget",
+      "Packages": [
+        {
+          "ID": "NETStandard.Library@1.6.1",
+          "Name": "NETStandard.Library",
+          "Identifier": {
+            "PURL": "pkg:nuget/NETStandard.Library@1.6.1",
+            "UID": "cbd883c4218f7589"
+          },
+          "Version": "1.6.1",
+          "Relationship": "direct",
+          "DependsOn": [
+            "System.Runtime.Extensions@4.3.0",
+            "System.Text.Encoding.Extensions@4.3.0",
+            "System.Threading.Timer@4.3.0",
+            "System.Reflection.Primitives@4.3.0",
+            "System.Collections@4.3.0",
+            "System.Net.Http@4.3.0",
+            "System.Reflection@4.3.0",
+            "System.Reflection.Extensions@4.3.0",
+            "System.Security.Cryptography.Algorithms@4.3.0",
+            "System.Xml.XDocument@4.3.0",
+            "Microsoft.Win32.Primitives@4.3.0",
+            "System.Console@4.3.0",
+            "System.Diagnostics.Tools@4.3.0",
+            "System.IO.FileSystem.Primitives@4.3.0",
+            "System.Text.RegularExpressions@4.3.0",
+            "System.Threading@4.3.0",
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "System.Security.Cryptography.X509Certificates@4.3.0",
+            "System.Collections.Concurrent@4.3.0",
+            "System.Linq.Expressions@4.3.0",
+            "System.Runtime.Handles@4.3.0",
+            "System.Security.Cryptography.Encoding@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "System.Xml.ReaderWriter@4.3.0",
+            "System.AppContext@4.3.0",
+            "System.Diagnostics.Debug@4.3.0",
+            "System.Globalization.Calendars@4.3.0",
+            "System.IO@4.3.0",
+            "System.Net.Primitives@4.3.0",
+            "System.ObjectModel@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Runtime.InteropServices@4.3.0",
+            "System.Globalization@4.3.0",
+            "System.IO.Compression@4.3.0",
+            "System.Runtime.InteropServices.RuntimeInformation@4.3.0",
+            "System.Threading.Tasks@4.3.0",
+            "System.IO.Compression.ZipFile@4.3.0",
+            "System.Runtime.Numerics@4.3.0",
+            "System.Security.Cryptography.Primitives@4.3.0",
+            "System.Diagnostics.Tracing@4.3.0",
+            "System.IO.FileSystem@4.3.0",
+            "System.Linq@4.3.0",
+            "System.Net.Sockets@4.3.0",
+            "System.Resources.ResourceManager@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 5,
+              "EndLine": 56
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Newtonsoft.Json@12.0.3",
+          "Name": "Newtonsoft.Json",
+          "Identifier": {
+            "PURL": "pkg:nuget/Newtonsoft.Json@12.0.3",
+            "UID": "9c2d6c78b7c577e"
+          },
+          "Version": "12.0.3",
+          "Relationship": "direct",
+          "Locations": [
+            {
+              "StartLine": 57,
+              "EndLine": 62
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.NETCore.Platforms@1.1.0",
+          "Name": "Microsoft.NETCore.Platforms",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.NETCore.Platforms@1.1.0",
+            "UID": "ecc53830d19d92f0"
+          },
+          "Version": "1.1.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 63,
+              "EndLine": 67
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.NETCore.Targets@1.1.0",
+          "Name": "Microsoft.NETCore.Targets",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.NETCore.Targets@1.1.0",
+            "UID": "aee7d525cd0ec7f6"
+          },
+          "Version": "1.1.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 68,
+              "EndLine": 72
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Win32.Primitives@4.3.0",
+          "Name": "Microsoft.Win32.Primitives",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Win32.Primitives@4.3.0",
+            "UID": "7aa742ba612b92e7"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Runtime@4.3.0",
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 73,
+              "EndLine": 82
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.AppContext@4.3.0",
+          "Name": "System.AppContext",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.AppContext@4.3.0",
+            "UID": "d6400e010c2f5220"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 190,
+              "EndLine": 197
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Buffers@4.3.0",
+          "Name": "System.Buffers",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Buffers@4.3.0",
+            "UID": "2c1e957c0ce843d"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Diagnostics.Tracing@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Threading@4.3.0",
+            "System.Diagnostics.Debug@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 198,
+              "EndLine": 209
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Collections@4.3.0",
+          "Name": "System.Collections",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Collections@4.3.0",
+            "UID": "b94d5ef3c6e9aafc"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 210,
+              "EndLine": 219
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Collections.Concurrent@4.3.0",
+          "Name": "System.Collections.Concurrent",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Collections.Concurrent@4.3.0",
+            "UID": "26f8a88d4a4cfe3a"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Reflection@4.3.0",
+            "System.Threading.Tasks@4.3.0",
+            "System.Collections@4.3.0",
+            "System.Diagnostics.Debug@4.3.0",
+            "System.Diagnostics.Tracing@4.3.0",
+            "System.Globalization@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Runtime.Extensions@4.3.0",
+            "System.Threading@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 220,
+              "EndLine": 236
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Console@4.3.0",
+          "Name": "System.Console",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Console@4.3.0",
+            "UID": "e71e0ded0b028aca"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Runtime@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.IO@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 237,
+              "EndLine": 248
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Diagnostics.Debug@4.3.0",
+          "Name": "System.Diagnostics.Debug",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "UID": "c2212f53a1556cd"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 249,
+              "EndLine": 258
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Diagnostics.DiagnosticSource@4.3.0",
+          "Name": "System.Diagnostics.DiagnosticSource",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Diagnostics.DiagnosticSource@4.3.0",
+            "UID": "1550f3b52bcf5896"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Threading@4.3.0",
+            "System.Collections@4.3.0",
+            "System.Diagnostics.Tracing@4.3.0",
+            "System.Reflection@4.3.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 259,
+              "EndLine": 270
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Diagnostics.Tools@4.3.0",
+          "Name": "System.Diagnostics.Tools",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Diagnostics.Tools@4.3.0",
+            "UID": "8bec37e5b71b3777"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 271,
+              "EndLine": 280
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Diagnostics.Tracing@4.3.0",
+          "Name": "System.Diagnostics.Tracing",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Diagnostics.Tracing@4.3.0",
+            "UID": "f94653db0516b329"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 281,
+              "EndLine": 290
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Globalization@4.3.0",
+          "Name": "System.Globalization",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Globalization@4.3.0",
+            "UID": "ebcc68101961be58"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 291,
+              "EndLine": 300
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Globalization.Calendars@4.3.0",
+          "Name": "System.Globalization.Calendars",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Globalization.Calendars@4.3.0",
+            "UID": "6e45b29ac75663b6"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Globalization@4.3.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 301,
+              "EndLine": 311
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Globalization.Extensions@4.3.0",
+          "Name": "System.Globalization.Extensions",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Globalization.Extensions@4.3.0",
+            "UID": "edb55c5f502431d2"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "System.Globalization@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Runtime.Extensions@4.3.0",
+            "System.Runtime.InteropServices@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 312,
+              "EndLine": 324
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.IO@4.3.0",
+          "Name": "System.IO",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.IO@4.3.0",
+            "UID": "a4dafa83bb482fcd"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Runtime@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "System.Threading.Tasks@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 325,
+              "EndLine": 336
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.IO.Compression@4.3.0",
+          "Name": "System.IO.Compression",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.IO.Compression@4.3.0",
+            "UID": "3daa217dbfc0a6b0"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Collections@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Runtime.Handles@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "System.Buffers@4.3.0",
+            "System.IO@4.3.0",
+            "System.Runtime.Extensions@4.3.0",
+            "runtime.native.System@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Runtime.InteropServices@4.3.0",
+            "System.Threading@4.3.0",
+            "System.Threading.Tasks@4.3.0",
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "System.Diagnostics.Debug@4.3.0",
+            "runtime.native.System.IO.Compression@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 337,
+              "EndLine": 358
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.IO.Compression.ZipFile@4.3.0",
+          "Name": "System.IO.Compression.ZipFile",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.IO.Compression.ZipFile@4.3.0",
+            "UID": "e75864f62952374c"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Buffers@4.3.0",
+            "System.IO.Compression@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Runtime.Extensions@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "System.IO@4.3.0",
+            "System.IO.FileSystem@4.3.0",
+            "System.IO.FileSystem.Primitives@4.3.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 359,
+              "EndLine": 374
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.IO.FileSystem@4.3.0",
+          "Name": "System.IO.FileSystem",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.IO.FileSystem@4.3.0",
+            "UID": "66cd7e1a5d4e932b"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.IO@4.3.0",
+            "System.IO.FileSystem.Primitives@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Runtime.Handles@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "System.Threading.Tasks@4.3.0",
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 375,
+              "EndLine": 389
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.IO.FileSystem.Primitives@4.3.0",
+          "Name": "System.IO.FileSystem.Primitives",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.IO.FileSystem.Primitives@4.3.0",
+            "UID": "6b3c9b383dd5da7e"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 390,
+              "EndLine": 397
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Linq@4.3.0",
+          "Name": "System.Linq",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Linq@4.3.0",
+            "UID": "48b2b2fce29cf94"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Runtime@4.3.0",
+            "System.Runtime.Extensions@4.3.0",
+            "System.Collections@4.3.0",
+            "System.Diagnostics.Debug@4.3.0",
+            "System.Resources.ResourceManager@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 398,
+              "EndLine": 409
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Linq.Expressions@4.3.0",
+          "Name": "System.Linq.Expressions",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Linq.Expressions@4.3.0",
+            "UID": "c89198321c223a7d"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Collections@4.3.0",
+            "System.IO@4.3.0",
+            "System.Reflection.Emit@4.3.0",
+            "System.Reflection.TypeExtensions@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Runtime.Extensions@4.3.0",
+            "System.Linq@4.3.0",
+            "System.ObjectModel@4.3.0",
+            "System.Reflection.Extensions@4.3.0",
+            "System.Threading@4.3.0",
+            "System.Globalization@4.3.0",
+            "System.Reflection.Primitives@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Diagnostics.Debug@4.3.0",
+            "System.Reflection@4.3.0",
+            "System.Reflection.Emit.ILGeneration@4.3.0",
+            "System.Reflection.Emit.Lightweight@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 410,
+              "EndLine": 433
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Net.Http@4.3.0",
+          "Name": "System.Net.Http",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Net.Http@4.3.0",
+            "UID": "c4d8ada8960b334d"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Runtime.Extensions@4.3.0",
+            "System.Collections@4.3.0",
+            "System.Diagnostics.Debug@4.3.0",
+            "System.Diagnostics.DiagnosticSource@4.3.0",
+            "System.Globalization.Extensions@4.3.0",
+            "System.IO.FileSystem@4.3.0",
+            "System.Runtime.InteropServices@4.3.0",
+            "System.Threading@4.3.0",
+            "System.Diagnostics.Tracing@4.3.0",
+            "System.IO@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "System.Threading.Tasks@4.3.0",
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "System.Globalization@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Security.Cryptography.Algorithms@4.3.0",
+            "System.Security.Cryptography.X509Certificates@4.3.0",
+            "runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "System.Net.Primitives@4.3.0",
+            "System.Runtime.Handles@4.3.0",
+            "System.Security.Cryptography.Encoding@4.3.0",
+            "System.Security.Cryptography.OpenSsl@4.3.0",
+            "System.Security.Cryptography.Primitives@4.3.0",
+            "runtime.native.System@4.3.0",
+            "runtime.native.System.Net.Http@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 434,
+              "EndLine": 466
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Net.Primitives@4.3.0",
+          "Name": "System.Net.Primitives",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Net.Primitives@4.3.0",
+            "UID": "1edd08ed8bc01b99"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Runtime@4.3.0",
+            "System.Runtime.Handles@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 467,
+              "EndLine": 477
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Net.Sockets@4.3.0",
+          "Name": "System.Net.Sockets",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Net.Sockets@4.3.0",
+            "UID": "64e8f7fd83991883"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Net.Primitives@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Threading.Tasks@4.3.0",
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.IO@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 478,
+              "EndLine": 490
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.ObjectModel@4.3.0",
+          "Name": "System.ObjectModel",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.ObjectModel@4.3.0",
+            "UID": "fca3a730f7b01925"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Threading@4.3.0",
+            "System.Collections@4.3.0",
+            "System.Diagnostics.Debug@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 491,
+              "EndLine": 502
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Reflection@4.3.0",
+          "Name": "System.Reflection",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Reflection@4.3.0",
+            "UID": "8ec320d4918febe"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.IO@4.3.0",
+            "System.Reflection.Primitives@4.3.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 503,
+              "EndLine": 514
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Reflection.Emit@4.3.0",
+          "Name": "System.Reflection.Emit",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Reflection.Emit@4.3.0",
+            "UID": "623ba09532eb8aca"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.IO@4.3.0",
+            "System.Reflection@4.3.0",
+            "System.Reflection.Emit.ILGeneration@4.3.0",
+            "System.Reflection.Primitives@4.3.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 515,
+              "EndLine": 526
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Reflection.Emit.ILGeneration@4.3.0",
+          "Name": "System.Reflection.Emit.ILGeneration",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Reflection.Emit.ILGeneration@4.3.0",
+            "UID": "99cc4f2c4ec58bef"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Reflection@4.3.0",
+            "System.Reflection.Primitives@4.3.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 527,
+              "EndLine": 536
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Reflection.Emit.Lightweight@4.3.0",
+          "Name": "System.Reflection.Emit.Lightweight",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Reflection.Emit.Lightweight@4.3.0",
+            "UID": "7792748344ff991e"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Reflection@4.3.0",
+            "System.Reflection.Emit.ILGeneration@4.3.0",
+            "System.Reflection.Primitives@4.3.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 537,
+              "EndLine": 547
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Reflection.Extensions@4.3.0",
+          "Name": "System.Reflection.Extensions",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Reflection.Extensions@4.3.0",
+            "UID": "47f5c8f2a076fd2"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Reflection@4.3.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 548,
+              "EndLine": 558
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Reflection.Primitives@4.3.0",
+          "Name": "System.Reflection.Primitives",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Reflection.Primitives@4.3.0",
+            "UID": "3bfd6fdaf2d61bde"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 559,
+              "EndLine": 568
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Reflection.TypeExtensions@4.3.0",
+          "Name": "System.Reflection.TypeExtensions",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Reflection.TypeExtensions@4.3.0",
+            "UID": "b83271c6c7b3aa7d"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Reflection@4.3.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 569,
+              "EndLine": 577
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Resources.ResourceManager@4.3.0",
+          "Name": "System.Resources.ResourceManager",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "UID": "cd4e4f36022d5d3a"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Globalization@4.3.0",
+            "System.Reflection@4.3.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 578,
+              "EndLine": 589
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Runtime@4.3.0",
+          "Name": "System.Runtime",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Runtime@4.3.0",
+            "UID": "ffa7178424721e5"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 590,
+              "EndLine": 598
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Runtime.Extensions@4.3.0",
+          "Name": "System.Runtime.Extensions",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "UID": "eaa54ee1a315316a"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 599,
+              "EndLine": 608
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Runtime.Handles@4.3.0",
+          "Name": "System.Runtime.Handles",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "UID": "49b81cb19177b31b"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 609,
+              "EndLine": 618
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Runtime.InteropServices@4.3.0",
+          "Name": "System.Runtime.InteropServices",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "UID": "c9b055ce5188f4ca"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Reflection@4.3.0",
+            "System.Reflection.Primitives@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Runtime.Handles@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 619,
+              "EndLine": 631
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Runtime.InteropServices.RuntimeInformation@4.3.0",
+          "Name": "System.Runtime.InteropServices.RuntimeInformation",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Runtime.InteropServices.RuntimeInformation@4.3.0",
+            "UID": "974ecb321914f920"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Runtime@4.3.0",
+            "System.Runtime.InteropServices@4.3.0",
+            "System.Threading@4.3.0",
+            "runtime.native.System@4.3.0",
+            "System.Reflection@4.3.0",
+            "System.Reflection.Extensions@4.3.0",
+            "System.Resources.ResourceManager@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 632,
+              "EndLine": 645
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Runtime.Numerics@4.3.0",
+          "Name": "System.Runtime.Numerics",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Runtime.Numerics@4.3.0",
+            "UID": "9afc4de347f02f77"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Runtime@4.3.0",
+            "System.Runtime.Extensions@4.3.0",
+            "System.Globalization@4.3.0",
+            "System.Resources.ResourceManager@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 646,
+              "EndLine": 656
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Security.Cryptography.Algorithms@4.3.0",
+          "Name": "System.Security.Cryptography.Algorithms",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Security.Cryptography.Algorithms@4.3.0",
+            "UID": "a60523659f27d2d2"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Runtime@4.3.0",
+            "System.Runtime.Handles@4.3.0",
+            "System.Security.Cryptography.Encoding@4.3.0",
+            "runtime.native.System.Security.Cryptography.Apple@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Runtime.Extensions@4.3.0",
+            "System.Runtime.InteropServices@4.3.0",
+            "System.Runtime.Numerics@4.3.0",
+            "System.Security.Cryptography.Primitives@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "System.Collections@4.3.0",
+            "System.IO@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 657,
+              "EndLine": 677
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Security.Cryptography.Cng@4.3.0",
+          "Name": "System.Security.Cryptography.Cng",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Security.Cryptography.Cng@4.3.0",
+            "UID": "402e47e47fceee38"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Security.Cryptography.Primitives@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "System.IO@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Runtime.InteropServices@4.3.0",
+            "System.Security.Cryptography.Encoding@4.3.0",
+            "System.Runtime.Extensions@4.3.0",
+            "System.Runtime.Handles@4.3.0",
+            "System.Security.Cryptography.Algorithms@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 678,
+              "EndLine": 695
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Security.Cryptography.Csp@4.3.0",
+          "Name": "System.Security.Cryptography.Csp",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Security.Cryptography.Csp@4.3.0",
+            "UID": "e8bf62f2995fa573"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Runtime.Handles@4.3.0",
+            "System.Runtime.InteropServices@4.3.0",
+            "System.Security.Cryptography.Encoding@4.3.0",
+            "System.Threading@4.3.0",
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "System.IO@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Runtime.Extensions@4.3.0",
+            "System.Security.Cryptography.Algorithms@4.3.0",
+            "System.Security.Cryptography.Primitives@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "System.Reflection@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 696,
+              "EndLine": 715
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Security.Cryptography.Encoding@4.3.0",
+          "Name": "System.Security.Cryptography.Encoding",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Security.Cryptography.Encoding@4.3.0",
+            "UID": "525d400160c9beb1"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "System.Collections@4.3.0",
+            "System.Linq@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Runtime.Extensions@4.3.0",
+            "System.Runtime.Handles@4.3.0",
+            "System.Security.Cryptography.Primitives@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "System.Collections.Concurrent@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Runtime.InteropServices@4.3.0",
+            "runtime.native.System.Security.Cryptography.OpenSsl@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 716,
+              "EndLine": 734
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Security.Cryptography.OpenSsl@4.3.0",
+          "Name": "System.Security.Cryptography.OpenSsl",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Security.Cryptography.OpenSsl@4.3.0",
+            "UID": "e3cbcd4aeb00e3c8"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Runtime@4.3.0",
+            "System.Runtime.Extensions@4.3.0",
+            "System.Runtime.Handles@4.3.0",
+            "System.Runtime.InteropServices@4.3.0",
+            "System.Security.Cryptography.Algorithms@4.3.0",
+            "System.Security.Cryptography.Encoding@4.3.0",
+            "runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "System.Collections@4.3.0",
+            "System.IO@4.3.0",
+            "System.Runtime.Numerics@4.3.0",
+            "System.Security.Cryptography.Primitives@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "System.Resources.ResourceManager@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 735,
+              "EndLine": 754
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Security.Cryptography.Primitives@4.3.0",
+          "Name": "System.Security.Cryptography.Primitives",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Security.Cryptography.Primitives@4.3.0",
+            "UID": "9e11b0bc1942d503"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Threading.Tasks@4.3.0",
+            "System.Diagnostics.Debug@4.3.0",
+            "System.Globalization@4.3.0",
+            "System.IO@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Threading@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 755,
+              "EndLine": 768
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Security.Cryptography.X509Certificates@4.3.0",
+          "Name": "System.Security.Cryptography.X509Certificates",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Security.Cryptography.X509Certificates@4.3.0",
+            "UID": "3b4ff49ee0bbc720"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Globalization@4.3.0",
+            "System.IO@4.3.0",
+            "System.IO.FileSystem.Primitives@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Security.Cryptography.Algorithms@4.3.0",
+            "System.Security.Cryptography.Csp@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "runtime.native.System.Net.Http@4.3.0",
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "System.Collections@4.3.0",
+            "System.Runtime.Extensions@4.3.0",
+            "System.Runtime.Handles@4.3.0",
+            "System.Security.Cryptography.OpenSsl@4.3.0",
+            "System.Threading@4.3.0",
+            "runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "System.Diagnostics.Debug@4.3.0",
+            "System.Globalization.Calendars@4.3.0",
+            "System.Runtime.InteropServices@4.3.0",
+            "System.Security.Cryptography.Cng@4.3.0",
+            "System.Security.Cryptography.Encoding@4.3.0",
+            "System.Security.Cryptography.Primitives@4.3.0",
+            "System.IO.FileSystem@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Runtime.Numerics@4.3.0",
+            "runtime.native.System@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 769,
+              "EndLine": 800
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Text.Encoding@4.3.0",
+          "Name": "System.Text.Encoding",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Text.Encoding@4.3.0",
+            "UID": "a0f166694e437fa0"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 801,
+              "EndLine": 810
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Text.Encoding.Extensions@4.3.0",
+          "Name": "System.Text.Encoding.Extensions",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Text.Encoding.Extensions@4.3.0",
+            "UID": "8cce47ff59ff73f6"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Runtime@4.3.0",
+            "System.Text.Encoding@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 811,
+              "EndLine": 821
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Text.RegularExpressions@4.3.0",
+          "Name": "System.Text.RegularExpressions",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Text.RegularExpressions@4.3.0",
+            "UID": "663111227e1debca"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 822,
+              "EndLine": 829
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Threading@4.3.0",
+          "Name": "System.Threading",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Threading@4.3.0",
+            "UID": "dfc4bd1cd44991e4"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Runtime@4.3.0",
+            "System.Threading.Tasks@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 830,
+              "EndLine": 838
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Threading.Tasks@4.3.0",
+          "Name": "System.Threading.Tasks",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Threading.Tasks@4.3.0",
+            "UID": "5fd492af7df0da7"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 839,
+              "EndLine": 848
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Threading.Tasks.Extensions@4.3.0",
+          "Name": "System.Threading.Tasks.Extensions",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Threading.Tasks.Extensions@4.3.0",
+            "UID": "440920cc95361d0d"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Collections@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Threading.Tasks@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 849,
+              "EndLine": 858
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Threading.Timer@4.3.0",
+          "Name": "System.Threading.Timer",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Threading.Timer@4.3.0",
+            "UID": "8f451d8ac7f9671"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 859,
+              "EndLine": 868
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Xml.ReaderWriter@4.3.0",
+          "Name": "System.Xml.ReaderWriter",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Xml.ReaderWriter@4.3.0",
+            "UID": "3736be8a82d80f1e"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Threading.Tasks.Extensions@4.3.0",
+            "System.Text.Encoding.Extensions@4.3.0",
+            "System.Diagnostics.Debug@4.3.0",
+            "System.IO@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Runtime.InteropServices@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "System.IO.FileSystem@4.3.0",
+            "System.Text.RegularExpressions@4.3.0",
+            "System.Threading.Tasks@4.3.0",
+            "System.Collections@4.3.0",
+            "System.Globalization@4.3.0",
+            "System.IO.FileSystem.Primitives@4.3.0",
+            "System.Runtime@4.3.0",
+            "System.Runtime.Extensions@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 869,
+              "EndLine": 890
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Xml.XDocument@4.3.0",
+          "Name": "System.Xml.XDocument",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Xml.XDocument@4.3.0",
+            "UID": "f017f9832f22c3d5"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "System.Runtime.Extensions@4.3.0",
+            "System.Text.Encoding@4.3.0",
+            "System.Threading@4.3.0",
+            "System.Xml.ReaderWriter@4.3.0",
+            "System.Collections@4.3.0",
+            "System.Diagnostics.Tools@4.3.0",
+            "System.Globalization@4.3.0",
+            "System.IO@4.3.0",
+            "System.Diagnostics.Debug@4.3.0",
+            "System.Reflection@4.3.0",
+            "System.Resources.ResourceManager@4.3.0",
+            "System.Runtime@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 891,
+              "EndLine": 909
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "Name": "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "UID": "10d3f4da3030d7d3"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 83,
+              "EndLine": 87
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "Name": "runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "UID": "7ca086089d4ec800"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 88,
+              "EndLine": 92
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "Name": "runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "UID": "80cb99003c2e3b59"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 93,
+              "EndLine": 97
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.native.System@4.3.0",
+          "Name": "runtime.native.System",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.native.System@4.3.0",
+            "UID": "dc11cfa4ad05d8cb"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 98,
+              "EndLine": 106
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.native.System.IO.Compression@4.3.0",
+          "Name": "runtime.native.System.IO.Compression",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.native.System.IO.Compression@4.3.0",
+            "UID": "c9ead94457c75267"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 107,
+              "EndLine": 115
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.native.System.Net.Http@4.3.0",
+          "Name": "runtime.native.System.Net.Http",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.native.System.Net.Http@4.3.0",
+            "UID": "1a1be0e4d9656a1e"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.NETCore.Platforms@1.1.0",
+            "Microsoft.NETCore.Targets@1.1.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 116,
+              "EndLine": 124
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.native.System.Security.Cryptography.Apple@4.3.0",
+          "Name": "runtime.native.System.Security.Cryptography.Apple",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.native.System.Security.Cryptography.Apple@4.3.0",
+            "UID": "2b2e94b54fe54d63"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 125,
+              "EndLine": 132
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "Name": "runtime.native.System.Security.Cryptography.OpenSsl",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "UID": "f2ff6977555848da"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "runtime.opensuse.13.2-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "runtime.opensuse.42.1-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "runtime.rhel.7-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0"
+          ],
+          "Locations": [
+            {
+              "StartLine": 133,
+              "EndLine": 149
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.opensuse.13.2-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "Name": "runtime.opensuse.13.2-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.opensuse.13.2-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "UID": "4cdeb5f7bc3771d5"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 150,
+              "EndLine": 154
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.opensuse.42.1-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "Name": "runtime.opensuse.42.1-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.opensuse.42.1-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "UID": "454ed593e433a2ae"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 155,
+              "EndLine": 159
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple@4.3.0",
+          "Name": "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple@4.3.0",
+            "UID": "ec18d5a4a7fe5391"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 160,
+              "EndLine": 164
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "Name": "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "UID": "215413980de575c5"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 165,
+              "EndLine": 169
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.rhel.7-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "Name": "runtime.rhel.7-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.rhel.7-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "UID": "db9e4e18ccfffdfb"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 170,
+              "EndLine": 174
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "Name": "runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "UID": "cf87111b39804a78"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 175,
+              "EndLine": 179
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "Name": "runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "UID": "ebe916cd59f0100"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 180,
+              "EndLine": 184
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "Name": "runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "Identifier": {
+            "PURL": "pkg:nuget/runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "UID": "79fc715ffa1d5ac0"
+          },
+          "Version": "4.3.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 185,
+              "EndLine": 189
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        }
+      ],
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "CVE-2024-21907",
+          "VendorIDs": [
+            "GHSA-5crp-9r3c-p9vr"
+          ],
+          "PkgID": "Newtonsoft.Json@12.0.3",
+          "PkgName": "Newtonsoft.Json",
+          "PkgIdentifier": {
+            "PURL": "pkg:nuget/Newtonsoft.Json@12.0.3",
+            "UID": "9c2d6c78b7c577e"
+          },
+          "InstalledVersion": "12.0.3",
+          "FixedVersion": "13.0.1",
+          "Status": "fixed",
+          "SeveritySource": "ghsa",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2024-21907",
+          "DataSource": {
+            "ID": "ghsa",
+            "Name": "GitHub Security Advisory NuGet",
+            "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Anuget"
+          },
+          "Fingerprint": "sha256:514c7d136ebcbe9b8c90254e263bbda14ddb2b6c6230719ca442585c6f36dcf6",
+          "Title": "Improper Handling of Exceptional Conditions in Newtonsoft.Json",
+          "Description": "Newtonsoft.Json before version 13.0.1 is affected by a mishandling of exceptional conditions vulnerability. Crafted data that is passed to the JsonConvert.DeserializeObject method may trigger a StackOverflow exception resulting in denial of service. Depending on the usage of the library, an unauthenticated and remote attacker may be able to cause the denial of service condition.",
+          "Severity": "HIGH",
+          "CweIDs": [
+            "CWE-755"
+          ],
+          "VendorSeverity": {
+            "ghsa": 3,
+            "nvd": 3
+          },
+          "CVSS": {
+            "ghsa": {
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+              "V3Score": 7.5
+            },
+            "nvd": {
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+              "V3Score": 7.5
+            }
+          },
+          "References": [
+            "https://alephsecurity.com/2018/10/22/StackOverflowException",
+            "https://alephsecurity.com/2018/10/22/StackOverflowException/",
+            "https://alephsecurity.com/vulns/aleph-2018004",
+            "https://github.com/JamesNK/Newtonsoft.Json",
+            "https://github.com/JamesNK/Newtonsoft.Json/commit/7e77bbe1beccceac4fc7b174b53abfefac278b66",
+            "https://github.com/JamesNK/Newtonsoft.Json/issues/2457",
+            "https://github.com/JamesNK/Newtonsoft.Json/pull/2462",
+            "https://github.com/advisories/GHSA-5crp-9r3c-p9vr",
+            "https://security.snyk.io/vuln/SNYK-DOTNET-NEWTONSOFTJSON-2774678",
+            "https://vulncheck.com/advisories/vc-advisory-GHSA-5crp-9r3c-p9vr"
+          ],
+          "PublishedDate": "2024-01-03T16:15:08.793Z",
+          "LastModifiedDate": "2026-07-14T23:17:13.903Z"
+        },
+        {
+          "VulnerabilityID": "CVE-2018-8292",
+          "VendorIDs": [
+            "GHSA-7jgj-8wvc-jh57"
+          ],
+          "PkgID": "System.Net.Http@4.3.0",
+          "PkgName": "System.Net.Http",
+          "PkgIdentifier": {
+            "PURL": "pkg:nuget/System.Net.Http@4.3.0",
+            "UID": "c4d8ada8960b334d"
+          },
+          "InstalledVersion": "4.3.0",
+          "FixedVersion": "4.3.4",
+          "Status": "fixed",
+          "SeveritySource": "ghsa",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2018-8292",
+          "DataSource": {
+            "ID": "ghsa",
+            "Name": "GitHub Security Advisory NuGet",
+            "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Anuget"
+          },
+          "Fingerprint": "sha256:1d2c0459890abe26d6ee9201711a9fa1d1b2858260e9721a61b540952edb9756",
+          "Title": "Core: information disclosure due to authentication information exposed in a redirect",
+          "Description": "An information disclosure vulnerability exists in .NET Core when authentication information is inadvertently exposed in a redirect, aka \".NET Core Information Disclosure Vulnerability.\" This affects .NET Core 2.1, .NET Core 1.0, .NET Core 1.1, PowerShell Core 6.0.",
+          "Severity": "HIGH",
+          "CweIDs": [
+            "CWE-200"
+          ],
+          "VendorSeverity": {
+            "ghsa": 3,
+            "nvd": 3,
+            "redhat": 2
+          },
+          "CVSS": {
+            "ghsa": {
+              "V3Vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+              "V3Score": 7.5
+            },
+            "nvd": {
+              "V2Vector": "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+              "V3Vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+              "V2Score": 5,
+              "V3Score": 7.5
+            },
+            "redhat": {
+              "V3Vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N",
+              "V3Score": 7.4
+            }
+          },
+          "References": [
+            "http://www.securityfocus.com/bid/105548",
+            "https://access.redhat.com/errata/RHSA-2018:2902",
+            "https://access.redhat.com/security/cve/CVE-2018-8292",
+            "https://github.com/dotnet/announcements/issues/88",
+            "https://nvd.nist.gov/vuln/detail/CVE-2018-8292",
+            "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2018-8292",
+            "https://www.cve.org/CVERecord?id=CVE-2018-8292"
+          ],
+          "PublishedDate": "2018-10-10T13:29:01.213Z",
+          "LastModifiedDate": "2026-06-17T02:04:34.603Z"
+        },
+        {
+          "VulnerabilityID": "CVE-2019-0820",
+          "VendorIDs": [
+            "GHSA-cmhx-cq75-c4mj"
+          ],
+          "PkgID": "System.Text.RegularExpressions@4.3.0",
+          "PkgName": "System.Text.RegularExpressions",
+          "PkgIdentifier": {
+            "PURL": "pkg:nuget/System.Text.RegularExpressions@4.3.0",
+            "UID": "663111227e1debca"
+          },
+          "InstalledVersion": "4.3.0",
+          "FixedVersion": "4.3.1",
+          "Status": "fixed",
+          "SeveritySource": "ghsa",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2019-0820",
+          "DataSource": {
+            "ID": "ghsa",
+            "Name": "GitHub Security Advisory NuGet",
+            "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Anuget"
+          },
+          "Fingerprint": "sha256:62c799dbfa9be56a49fa59a6e79a8772f0b6270be9bfafa8d84a33be0c27f2c8",
+          "Title": "dotnet: timeouts for regular expressions are not enforced",
+          "Description": "A denial of service vulnerability exists when .NET Framework and .NET Core improperly process RegEx strings, aka '.NET Framework and .NET Core Denial of Service Vulnerability'. This CVE ID is unique from CVE-2019-0980, CVE-2019-0981.",
+          "Severity": "HIGH",
+          "CweIDs": [
+            "CWE-400"
+          ],
+          "VendorSeverity": {
+            "ghsa": 3,
+            "nvd": 3,
+            "oracle-oval": 3,
+            "photon": 3,
+            "redhat": 2
+          },
+          "CVSS": {
+            "ghsa": {
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+              "V3Score": 7.5
+            },
+            "nvd": {
+              "V2Vector": "AV:N/AC:L/Au:N/C:N/I:N/A:P",
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+              "V2Score": 5,
+              "V3Score": 7.5
+            },
+            "redhat": {
+              "V3Vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+              "V3Score": 7.5
+            }
+          },
+          "References": [
+            "https://access.redhat.com/errata/RHSA-2019:1259",
+            "https://access.redhat.com/security/cve/CVE-2019-0820",
+            "https://linux.oracle.com/cve/CVE-2019-0820.html",
+            "https://linux.oracle.com/errata/ELSA-2019-1259.html",
+            "https://nvd.nist.gov/vuln/detail/CVE-2019-0820",
+            "https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2019-0820",
+            "https://www.cve.org/CVERecord?id=CVE-2019-0820"
+          ],
+          "PublishedDate": "2019-05-16T19:29:00.88Z",
+          "LastModifiedDate": "2026-06-17T02:08:58.357Z"
+        }
+      ]
+    }
+  ]
+}

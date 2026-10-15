@@ -1,0 +1,20 @@
+namespace Snail.MCP.Security.Tools;
+
+/// <summary>What the model is told about this server when it connects.</summary>
+public static class ServerGuidance
+{
+    /// <summary>The instructions a client shows the model before any tool.</summary>
+    public const string Instructions =
+        """
+        This server checks the task's working copy for security problems: vulnerable packages, secrets in files, insecure
+        container and infrastructure settings, and insecure code. Every finding names the ENS measures and NIS2 letters
+        it falls under.
+
+        Start with security_scan. Fix what it says blocks the work — critical and high findings — then scan again: the
+        answer says what got fixed since the scan before. Update a package to the version the finding names; take a
+        secret out of the files and say it has to be rotated, since it was exposed; change the setting or the code the
+        finding points at. Read the rest with security_findings.
+
+        Every answer is JSON with an ok flag. When ok is false nothing happened: read error and hint.
+        """;
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.orldev/snail-mcp-security",
+  "description": "Security checks of a working copy: packages, secrets, config and code, mapped to ENS and NIS2",
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "nuget",
+      "identifier": "Snail.MCP.Security",
+      "version": "0.1.0",
+      "transport": {
+        "type": "streamable-http",
+        "url": "http://127.0.0.1:8829/mcp"
+      },
+      "packageArguments": [],
+      "environmentVariables": []
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/orldev/Snail.MCP.Security",
+    "source": "github"
+  }
+}

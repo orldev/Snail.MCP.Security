@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <Sdk Name="Snail.Sdk.Mcp" />
+
+  <!--
+    Framework-dependent and HTTP only (Snail.Sdk.Mcp): the server runs in its own container on the stand, beside the
+    Nomad agent it runs the scanners through, and answers the workers of the platform at its port.
+  -->
+  <PropertyGroup>
+    <SnailMcpNative>false</SnailMcpNative>
+    <SnailMcpTransport>Http</SnailMcpTransport>
+    <SnailMcpContainer>true</SnailMcpContainer>
+    <Version>0.1.0</Version>
+    <Description>Security checks of a working copy: packages, secrets, config and code, mapped to ENS and NIS2</Description>
+    <PackageTags>mcp;mcp-server;modelcontextprotocol;ai;security;nomad;ens;nis2</PackageTags>
+    <RepositoryUrl>https://github.com/orldev/Snail.MCP.Security</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/orldev/Snail.MCP.Security</PackageProjectUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
+    <PackageReference Include="Snail.Toolkit.Nomad" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Snail.MCP.Security.Tests" />
+    <InternalsVisibleTo Include="Snail.MCP.Security.Benchmarks" />
+  </ItemGroup>
+
+</Project>
