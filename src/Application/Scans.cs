@@ -8,7 +8,7 @@ namespace Snail.MCP.Security.Application;
 public sealed class Scans(SessionCopy session, IScanner scanner, IScanHistory history, IOptions<SecurityOptions> options, TimeProvider clock)
 {
     /// <summary>The checks a caller may name, as the tools spell them.</summary>
-    public static readonly IReadOnlyDictionary<string, Check> Words = Enum.GetValues<Check>().ToDictionary(Word, check => check, StringComparer.OrdinalIgnoreCase);
+    public static readonly IReadOnlyDictionary<string, Check> Words = Checks.Copy.ToDictionary(Word, check => check, StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Scans the copy with the checks named, every one when none is, and says how the result compares with the task's scan before.</summary>
     public async Task<Answer<ScanReport>> ScanAsync(IReadOnlyList<string>? checks, CancellationToken cancellationToken)
@@ -21,7 +21,7 @@ public sealed class Scans(SessionCopy session, IScanner scanner, IScanHistory hi
         if (unknown.Count > 0)
             return Answer.Failed<ScanReport>(Messages.UnknownChecks(unknown, Words.Keys));
 
-        IReadOnlyCollection<Check> wanted = checks is { Count: > 0 } ? [.. checks.Select(word => Words[word]).Distinct()] : Enum.GetValues<Check>();
+        IReadOnlyCollection<Check> wanted = checks is { Count: > 0 } ? [.. checks.Select(word => Words[word]).Distinct()] : Checks.Copy;
         var outcome = await scanner.ScanAsync(copy, wanted, cancellationToken);
         var before = await history.LastAsync(copy.Task, cancellationToken);
         var report = new ScanReport(clock.GetUtcNow(), outcome.Findings, outcome.Runs, null);

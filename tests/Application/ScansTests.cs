@@ -56,13 +56,13 @@ public sealed class ScansTests
     private static readonly Finding Package = new(Check.Packages, Severity.High, "GHSA-5crp-9r3c-p9vr", "Newtonsoft", "Shop.Api.csproj", "Newtonsoft.Json", "12.0.3", "13.0.1");
 
     [Fact]
-    public async Task ScanAsync_NoChecksNamed_RunsEveryCheck()
+    public async Task ScanAsync_NoChecksNamed_RunsEveryCheckOfTheCopy()
     {
         var scanner = new FakeScanner();
 
         await Of(scanner, new MemoryHistory()).ScanAsync(null, CancellationToken.None);
 
-        Assert.Equal(Enum.GetValues<Check>(), Assert.Single(scanner.Asked).Order());
+        Assert.Equal(Checks.Copy, Assert.Single(scanner.Asked).Order());
     }
 
     [Fact]

@@ -27,9 +27,9 @@ public sealed partial class ToolCatalogTests
     }
 
     [Fact]
-    public void Checks_EveryCheck_IsNamed()
+    public void Checks_EveryCheckOfTheCopy_IsNamed()
     {
-        foreach (var check in Enum.GetValues<Check>())
+        foreach (var check in Checks.Copy)
             Assert.Contains(ToolResponse.Word(check), Words(ToolDescriptions.Checks));
     }
 

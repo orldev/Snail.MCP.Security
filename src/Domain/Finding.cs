@@ -13,7 +13,32 @@ public enum Check
     Config,
 
     /// <summary>Insecure code found by static analysis.</summary>
-    Code
+    Code,
+
+    /// <summary>A site's TLS: old protocol versions, weak ciphers, a certificate that is expired, self-signed or for another name.</summary>
+    Tls,
+
+    /// <summary>A site's missing security headers.</summary>
+    Headers,
+
+    /// <summary>A domain's mail protection: SPF and DMARC records.</summary>
+    Mail,
+
+    /// <summary>What a site shows that it should not: admin panels, configuration and repository files.</summary>
+    Exposure,
+
+    /// <summary>A server's open ports and the versions of the services behind them, end-of-life ones first.</summary>
+    Services
+}
+
+/// <summary>Which checks look at a working copy and which at a customer's site.</summary>
+public static class Checks
+{
+    /// <summary>The checks of a working copy.</summary>
+    public static IReadOnlyList<Check> Copy { get; } = [Check.Packages, Check.Secrets, Check.Config, Check.Code];
+
+    /// <summary>The checks of a site and the server behind it.</summary>
+    public static IReadOnlyList<Check> Site { get; } = [Check.Tls, Check.Headers, Check.Mail, Check.Exposure, Check.Services];
 }
 
 /// <summary>How bad a finding is, worst first.</summary>

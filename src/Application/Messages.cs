@@ -44,4 +44,32 @@ public static class Messages
 
     /// <summary>Where Nomad comes from.</summary>
     public const string SchedulerDownHint = "Scans run through Nomad: start the stand with SWARM_NOMAD=1, or point SNAIL_MCP_SECURITY_NOMAD_ADDRESS at it.";
+
+    /// <summary>A site that is not a public domain name.</summary>
+    public static string NotASite(string named) =>
+        $"\"{named}\" is not a site this server checks: name a public domain, such as shop.example.com — an address alone cannot be proven yours.";
+
+    /// <summary>A site whose ownership is not proven.</summary>
+    public static string NotProven(string host) =>
+        $"{host} is not proven to be yours, so it is not checked: scanning a system without its owner's authorisation is an offence (Código Penal, art. 197 bis and 264 bis).";
+
+    /// <summary>How to prove a site.</summary>
+    public static string ProveHint(string record, string code) =>
+        $"Publish a TXT record {record} with the value {code}, wait for DNS to spread, and ask again. A record on a parent domain covers its subdomains.";
+
+    /// <summary>DNS that did not answer.</summary>
+    public static string DnsUnanswered(string name) => $"The public DNS did not answer the same for {name}; try again in a minute.";
+
+    /// <summary>A site that points at an address that is not public.</summary>
+    public static string NotPublic(string host, string address) =>
+        $"{host} points at {address}, which is not a public address: the site is not checked, so the scanners never reach a private network.";
+
+    /// <summary>A site that does not resolve.</summary>
+    public static string Unresolved(string host) => $"{host} has no address in the public DNS.";
+
+    /// <summary>A site with no check yet.</summary>
+    public const string SiteNotScanned = "This site has no check yet.";
+
+    /// <summary>What makes one.</summary>
+    public const string SiteNotScannedHint = "Call security_site_scan first.";
 }

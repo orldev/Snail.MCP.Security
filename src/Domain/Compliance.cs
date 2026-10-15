@@ -12,7 +12,8 @@ public sealed record Reference(string Code, string Title);
 /// <para>
 /// Two readings are interpretation rather than the letter: op.acc.5 and op.acc.6 are written for the authentication of
 /// people, and a token or a cloud key in code is a machine's credential; a cryptographic key adds op.exp.10 and NIS2's
-/// cryptography letter (h). As of October 2026 Spain has not transposed NIS2 — the draft law of 14 January 2025 is still
+/// cryptography letter (h). A site's findings fall under the measures of communications (mp.com), of web services and of
+/// e-mail (mp.s.1, mp.s.2); open services under configuration, maintenance and the secure perimeter. As of October 2026 Spain has not transposed NIS2 — the draft law of 14 January 2025 is still
 /// in passage — so for Spanish entities it is the obligation to come, and RDL 12/2018 the one in force.
 /// </para>
 /// </remarks>
@@ -28,6 +29,12 @@ public static class Compliance
     private static readonly Reference Development = new("mp.sw.1", "Desarrollo de aplicaciones");
     private static readonly Reference Acceptance = new("mp.sw.2", "Aceptación y puesta en servicio");
 
+    private static readonly Reference Perimeter = new("mp.com.1", "Perímetro seguro");
+    private static readonly Reference Confidentiality = new("mp.com.2", "Protección de la confidencialidad");
+    private static readonly Reference Integrity = new("mp.com.3", "Protección de la integridad y de la autenticidad");
+    private static readonly Reference Mail = new("mp.s.1", "Protección del correo electrónico");
+    private static readonly Reference Web = new("mp.s.2", "Protección de servicios y aplicaciones web");
+
     private static readonly Reference SupplyChain = new("NIS2 21(2)(d)", "supply chain security");
     private static readonly Reference Lifecycle = new("NIS2 21(2)(e)", "security in network and information systems acquisition, development and maintenance, including vulnerability handling and disclosure");
     private static readonly Reference Cryptography = new("NIS2 21(2)(h)", "policies and procedures regarding the use of cryptography and, where appropriate, encryption");
@@ -40,7 +47,12 @@ public static class Compliance
         Check.Secrets when IsKey(finding) => [OrganisationUsers, ExternalUsers, Keys],
         Check.Secrets => [OrganisationUsers, ExternalUsers],
         Check.Config => [Configuration, ConfigurationManagement],
-        _ => [Development, Acceptance]
+        Check.Code => [Development, Acceptance],
+        Check.Tls => [Confidentiality, Integrity, Web],
+        Check.Headers => [Web, Configuration],
+        Check.Mail => [Mail],
+        Check.Exposure => [Web, Configuration],
+        _ => [Configuration, Maintenance, Perimeter]
     };
 
     /// <summary>The letters of NIS2's Article 21(2) a finding falls under.</summary>
@@ -49,6 +61,8 @@ public static class Compliance
         Check.Packages => [Lifecycle, SupplyChain],
         Check.Secrets when IsKey(finding) => [AccessControl, Cryptography],
         Check.Secrets => [AccessControl],
+        Check.Tls => [Cryptography, Lifecycle],
+        Check.Exposure or Check.Services => [Lifecycle, AccessControl],
         _ => [Lifecycle]
     };
 
