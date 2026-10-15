@@ -12,9 +12,12 @@ namespace Snail.MCP.Security.Adapters;
 /// The .NET scanner restores packages, which writes, so it works on a copy of the copy without its bin and obj.
 /// </para>
 /// <para>
-/// Each scanner prints its JSON on standard output and talks on standard error; the .NET scanner prints one document per
-/// project with <see cref="ScannerReports.Separator"/> between them. Nomad interpolates <c>${…}</c> in a task's config,
-/// so no script here uses that form. Every scanner reaches the world only through the egress proxy.
+/// Each scanner writes its JSON report as a file into the shared cache volume, under a folder of the task and of the run,
+/// and the server reads it from there: a report read back through Nomad's logs is capped at a megabyte, which a repository
+/// with many vulnerable packages passes. A folder per run means a scanner that failed before writing leaves no report
+/// rather than the last one; each scanner removes the task's older runs. The .NET scanner writes one document per project
+/// with <see cref="ScannerReports.Separator"/> between them. Nomad interpolates <c>${…}</c> in a task's config, so no
+/// script here uses that form. Every scanner reaches the world only through the egress proxy.
 /// </para>
 /// </remarks>
 public static class ScannerJob
@@ -33,6 +36,9 @@ public static class ScannerJob
 
     private const long Second = 1_000_000_000;
 
+    /// <summary>What every scanner does first: makes the run's folder and removes the task's older runs.</summary>
+    private const string Prepare = """mkdir -p "$S3L_REPORTS" && find "$S3L_RUNS" -mindepth 1 -maxdepth 1 ! -name "$S3L_RUN" -exec rm -rf {} + &&""";
+
     private const string DotnetScript = $$"""
         set -e
         rm -rf /tmp/src && mkdir -p /tmp/src && cp -a "$S3L_COPY/." /tmp/src/
@@ -40,12 +46,22 @@ public static class ScannerJob
         cd /tmp/src
         targets=$(ls *.slnx *.sln 2>/dev/null | head -n 1)
         [ -n "$targets" ] || targets=$(find . -name '*.csproj' -o -name '*.fsproj' | sort)
+        {{Prepare}} true
         for target in $targets; do
           dotnet restore "$target" >&2 || true
           dotnet list "$target" package --vulnerable --include-transitive --format json --no-restore || true
           echo "{{ScannerReports.Separator}}"
-        done
+        done > "$S3L_REPORTS/dotnet.json"
         """;
+
+    /// <summary>The folder a run's reports are written to, the same inside a scanner and inside the server.</summary>
+    public static string ReportsOf(CopyPlace copy, string run) => $"{RunsOf(copy)}/{run}";
+
+    /// <summary>The folder every run of a task writes under.</summary>
+    public static string RunsOf(CopyPlace copy) => $"{CacheFolder}/reports/{copy.Task}";
+
+    /// <summary>The report file a scanner writes.</summary>
+    public static string ReportOf(CopyPlace copy, string run, string task) => $"{ReportsOf(copy, run)}/{task}.json";
 
     /// <summary>The tasks a set of checks needs: Trivy for packages, secrets and settings, Semgrep for code, .NET for NuGet packages.</summary>
     public static IReadOnlyList<string> TasksFor(IReadOnlyCollection<Check> checks)
@@ -67,7 +83,7 @@ public static class ScannerJob
     /// <summary>The scan's job; each run carries a mark of its own, or Nomad keeps an unchanged batch job and nothing runs again.</summary>
     public static JsonObject Of(CopyPlace copy, IReadOnlyCollection<Check> checks, string run, SecurityOptions options)
     {
-        JsonArray tasks = [.. TasksFor(checks).Select(task => Task(task, copy, checks, options))];
+        JsonArray tasks = [.. TasksFor(checks).Select(task => Task(task, copy, checks, run, options))];
 
         var job = new JsonObject
         {
@@ -93,20 +109,21 @@ public static class ScannerJob
         return job;
     }
 
-    private static JsonObject Task(string name, CopyPlace copy, IReadOnlyCollection<Check> checks, SecurityOptions options)
+    private static JsonObject Task(string name, CopyPlace copy, IReadOnlyCollection<Check> checks, string run, SecurityOptions options)
     {
         var config = name switch
         {
             Trivy => new JsonObject
             {
                 ["image"] = options.TrivyImage,
-                ["args"] = new JsonArray([.. TrivyArguments(copy, checks).Select(argument => (JsonNode)argument)])
+                ["entrypoint"] = new JsonArray("sh"),
+                ["args"] = new JsonArray("-c", $"""{Prepare} trivy {string.Join(' ', TrivyArguments(checks))} --output "$S3L_REPORTS/trivy.json" "$S3L_COPY" """)
             },
             Semgrep => new JsonObject
             {
                 ["image"] = options.SemgrepImage,
                 ["command"] = "sh",
-                ["args"] = new JsonArray("-c", $"""cd "$S3L_COPY" && semgrep scan {string.Join(' ', options.SemgrepConfigs.Select(rules => $"--config {rules}"))} --metrics=off --disable-version-check --json --quiet .""")
+                ["args"] = new JsonArray("-c", $"""{Prepare} cd "$S3L_COPY" && semgrep scan {string.Join(' ', options.SemgrepConfigs.Select(rules => $"--config {rules}"))} --metrics=off --disable-version-check --json --quiet --output "$S3L_REPORTS/semgrep.json" .""")
             },
             _ => new JsonObject
             {
@@ -131,7 +148,7 @@ public static class ScannerJob
                 ["ReadOnly"] = true,
                 ["PropagationMode"] = "host-to-task"
             }),
-            ["Env"] = Env(copy, options),
+            ["Env"] = Env(copy, run, options),
             ["LogConfig"] = new JsonObject { ["MaxFiles"] = 2, ["MaxFileSizeMB"] = 50 },
             ["Resources"] = new JsonObject { ["CPU"] = options.ScannerCpu, ["MemoryMB"] = options.ScannerMemoryMegabytes }
         };
@@ -139,7 +156,7 @@ public static class ScannerJob
         return task;
     }
 
-    private static IEnumerable<string> TrivyArguments(CopyPlace copy, IReadOnlyCollection<Check> checks)
+    private static IEnumerable<string> TrivyArguments(IReadOnlyCollection<Check> checks)
     {
         IReadOnlyList<string> scanners =
         [
@@ -151,15 +168,18 @@ public static class ScannerJob
         return
         [
             "fs", "--scanners", string.Join(',', scanners), "--format", "json", "--quiet", "--exit-code", "0",
-            "--skip-version-check", "--disable-telemetry", "--cache-dir", $"{CacheFolder}/trivy", copy.Path
+            "--skip-version-check", "--disable-telemetry", "--cache-dir", $"{CacheFolder}/trivy"
         ];
     }
 
-    private static JsonObject Env(CopyPlace copy, SecurityOptions options)
+    private static JsonObject Env(CopyPlace copy, string run, SecurityOptions options)
     {
         var env = new JsonObject
         {
             ["S3L_COPY"] = copy.Path,
+            ["S3L_RUN"] = run,
+            ["S3L_RUNS"] = RunsOf(copy),
+            ["S3L_REPORTS"] = ReportsOf(copy, run),
             ["HOME"] = "/tmp",
             ["XDG_CACHE_HOME"] = "/tmp/.cache",
             ["SEMGREP_SEND_METRICS"] = "off",

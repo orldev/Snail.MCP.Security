@@ -20,6 +20,8 @@ RUN dotnet publish src/Snail.MCP.Security.csproj -c Release -o /app -p:PublishAo
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app .
+# The scan history lives in the server's data folder, a volume on the stand: made here so the volume takes the app user's ownership.
+RUN mkdir -p /home/app/.s3l-mcp-security && chown -R app:app /home/app
 ENV ASPNETCORE_HTTP_PORTS=8829 \
     Logging__LogLevel__Default=Information \
     Logging__LogLevel__Microsoft.AspNetCore=Warning

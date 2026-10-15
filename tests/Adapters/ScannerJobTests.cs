@@ -31,9 +31,10 @@ public sealed class ScannerJobTests
         var job = ScannerJob.Of(Copy, [Check.Secrets], "r1", Options);
 
         var trivy = Assert.Single(Tasks(job));
-        var arguments = trivy["Config"]!["args"]!.AsArray().Select(argument => (string?)argument).ToList();
-        Assert.Equal("secret", arguments[arguments.IndexOf("--scanners") + 1]);
-        Assert.Equal(Copy.Path, arguments[^1]);
+        string script = (string?)trivy["Config"]!["args"]![1] ?? string.Empty;
+        Assert.Contains("--scanners secret ", script, StringComparison.Ordinal);
+        Assert.Contains("--output \"$S3L_REPORTS/trivy.json\" \"$S3L_COPY\"", script, StringComparison.Ordinal);
+        Assert.Equal(ScannerJob.ReportsOf(Copy, "r1"), (string?)trivy["Env"]!["S3L_REPORTS"]);
     }
 
     /// <summary>A scanner reads all of a task's code: its image is pinned by digest, never by a tag that can be moved.</summary>
@@ -55,6 +56,14 @@ public sealed class ScannerJobTests
         var strings = Tasks(job).SelectMany(task => task["Config"]!["args"]!.AsArray()).Select(argument => (string?)argument ?? string.Empty);
 
         Assert.All(strings, text => Assert.DoesNotMatch(@"(?<!\$)\$\{", text));
+    }
+
+    /// <summary>A run's reports go to a folder of its own: a scanner that failed before writing leaves nothing to mistake for its report.</summary>
+    [Fact]
+    public void ReportOf_TwoRuns_AreDifferentFilesUnderTheTasksFolder()
+    {
+        Assert.NotEqual(ScannerJob.ReportOf(Copy, "r1", "trivy"), ScannerJob.ReportOf(Copy, "r2", "trivy"));
+        Assert.StartsWith($"{ScannerJob.RunsOf(Copy)}/", ScannerJob.ReportOf(Copy, "r1", "trivy"), StringComparison.Ordinal);
     }
 
     [Fact]

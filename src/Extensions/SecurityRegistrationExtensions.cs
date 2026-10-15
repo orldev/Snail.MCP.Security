@@ -20,6 +20,8 @@ public static class SecurityRegistrationExtensions
             services.AddSingleton<SessionGrant>();
             services.AddSingleton<IScanner, NomadScanner>();
             services.AddSingleton<IScanHistory>(_ => FileScanHistory.InDataFolder());
+            services.AddSingleton<IFixes, NuGetFixes>();
+            services.AddHttpClient(NuGetFixes.Client, client => client.Timeout = TimeSpan.FromSeconds(60)).ConfigurePrimaryHttpMessageHandler(NuGetFixes.Handler);
             services.AddSingleton<Scans>();
             services.AddNomad(nomad => nomad.Address = SecuritySettings.Read()[nameof(SecurityOptions.NomadAddress)] ?? new SecurityOptions().NomadAddress);
             services.AddHostedService<EgressProxy>();

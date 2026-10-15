@@ -52,7 +52,7 @@ public static class ScannerReports
     public static IReadOnlyList<Finding> Semgrep(string json) =>
         [
             .. Array(Parse(json)?["results"]).Select(result => new Finding(
-                Check.Code,
+                IsInfrastructure((string?)result!["check_id"]) ? Check.Config : Check.Code,
                 (string?)result!["extra"]?["severity"] switch
                 {
                     "ERROR" => Severity.High,
@@ -135,6 +135,12 @@ public static class ScannerReports
         _ => Severity.Unknown
     };
 
+    /// <summary>Whether a Semgrep rule judges a container or infrastructure file rather than code: its registry path says so.</summary>
+    private static bool IsInfrastructure(string? rule) =>
+        rule is not null && Infrastructure.Any(prefix => rule.StartsWith(prefix, StringComparison.Ordinal));
+
+    private static readonly string[] Infrastructure = ["dockerfile.", "yaml.docker-compose.", "yaml.kubernetes.", "terraform.", "generic.nginx.", "json.aws."];
+
     /// <summary>The GHSA an advisory's address ends in.</summary>
     private static string? Advisory(string? url) =>
         url?.Split('/').LastOrDefault(part => part.StartsWith("GHSA-", StringComparison.Ordinal));
@@ -152,12 +158,15 @@ public static class ScannerReports
 
     private static string At(string path, int? line) => line is { } number ? $"{path}:{number}" : path;
 
-    /// <summary>A path as the working copy names it: no leading ./ or the folder the scanner mounted it at.</summary>
+    /// <summary>A path as the working copy names it: no leading ./ or the folder the scanner mounted or copied it to.</summary>
     private static string Relative(string path)
     {
         string trimmed = path.StartsWith("./", StringComparison.Ordinal) ? path[2..] : path;
 
-        return trimmed.StartsWith("/src/", StringComparison.Ordinal) ? trimmed[5..] : trimmed.TrimStart('/');
+        string[] mounts = ["/tmp/src/", "/src/"];
+        string? mount = mounts.FirstOrDefault(prefix => trimmed.StartsWith(prefix, StringComparison.Ordinal));
+
+        return mount is null ? trimmed.TrimStart('/') : trimmed[mount.Length..];
     }
 
     private static JsonNode? Parse(string json)

@@ -68,6 +68,22 @@ public sealed class ScannerReportsTests
         Assert.All(merged, finding => Assert.NotNull(finding.FixedIn));
     }
 
+    [Fact]
+    public void Dotnet_ProjectPathInTheScannersCopy_IsRelativeToTheWorkingCopy()
+    {
+        string report = Fixture("dotnet-vulnerable.json").Replace("\"/src/T.csproj\"", "\"/tmp/src/src/Shop.Api/Shop.Api.csproj\"", StringComparison.Ordinal);
+
+        Assert.All(ScannerReports.Dotnet(report), finding => Assert.Equal("src/Shop.Api/Shop.Api.csproj", finding.Location));
+    }
+
+    [Fact]
+    public void Semgrep_DockerfileRule_IsASettingNotCode()
+    {
+        const string report = """{"results":[{"check_id":"dockerfile.security.last-user-is-root.last-user-is-root","path":"Dockerfile","start":{"line":4},"extra":{"severity":"ERROR","message":"root","metadata":{}}}]}""";
+
+        Assert.Equal(Check.Config, Assert.Single(ScannerReports.Semgrep(report)).Check);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("Unable to find image")]
