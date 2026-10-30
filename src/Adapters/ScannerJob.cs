@@ -117,12 +117,12 @@ public static class ScannerJob
     public static JsonObject Of(CopyPlace copy, IReadOnlyCollection<Check> checks, string run, SecurityOptions options)
     {
         var scanners = TasksFor(checks);
-        JsonArray tasks = [.. scanners.Select(task => Task(task, copy, checks, run, options))];
+        JsonArray tasks = [.. scanners.Select(task => (JsonNode)Task(task, copy, checks, run, options))];
 
         if (scanners.Contains(Dotnet))
         {
-            tasks.Add(Lifecycle(Stage, "prestart", StageScript, copy, run, options));
-            tasks.Add(Lifecycle(Collect, "poststop", CollectScript, copy, run, options));
+            tasks.Add((JsonNode)Lifecycle(Stage, "prestart", StageScript, copy, run, options));
+            tasks.Add((JsonNode)Lifecycle(Collect, "poststop", CollectScript, copy, run, options));
         }
 
         var job = new JsonObject

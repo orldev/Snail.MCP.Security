@@ -14,17 +14,26 @@
 # The server listens on every interface at the port of SNAIL_MCP_SECURITY_URL (8829) for the platform's workers
 # (McpHttpHost.CreateContainerBuilder: a browser's request is still refused), and its egress proxy at 3128 for the
 # scanners it runs. The SDK is pinned to the band global.json asks for: on the floating sdk:10.0 a newer feature
-# band would one day refuse the build. The server is framework-dependent: published without Native AOT onto the
-# ASP.NET runtime.
+# band would one day refuse the build.
+#
+# The server is native: the SDK compiles it ahead of time (Native AOT), which needs clang and zlib in the build stage,
+# and the image runs the one executable on runtime-deps, with no .NET runtime in it. It is compiled for the platform
+# the image is built for (TARGETARCH, which buildx sets): ahead-of-time compilation does not cross architectures in the
+# SDK image, so linux-x64 alone would not build on an arm64 machine, such as a Mac running the stand.
 ARG VERSION=0.0.0-local
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0.302 AS build
 ARG VERSION
+ARG TARGETARCH
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends clang zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /source
 COPY . .
-RUN dotnet publish src/Snail.MCP.Security.csproj -c Release -o /app -p:PublishAot=false -p:UseAppHost=false -p:Version=$VERSION
+RUN case "$TARGETARCH" in amd64|"") rid=linux-x64 ;; *) rid="linux-$TARGETARCH" ;; esac \
+    && dotnet publish src/Snail.MCP.Security.csproj -c Release -r "$rid" -o /app -p:Version=$VERSION
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0
 ARG VERSION
 LABEL org.opencontainers.image.version=$VERSION
 WORKDIR /app
@@ -34,4 +43,4 @@ RUN mkdir -p /home/app/.s3l-mcp-security && chown -R app:app /home/app
 EXPOSE 8829 3128
 USER app
 
-ENTRYPOINT ["dotnet", "/app/Snail.MCP.Security.dll"]
+ENTRYPOINT ["/app/Snail.MCP.Security"]

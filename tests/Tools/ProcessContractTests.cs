@@ -150,6 +150,26 @@ public sealed class ProcessContractTests : IAsyncLifetime
         Assert.All(runs, run => Assert.False(run.GetProperty("ran").GetBoolean()));
     }
 
+    /// <summary>
+    /// Every argument a tool takes, as the program binds it: an array of checks, then a page narrowed by severity, check,
+    /// offset and limit. A native build binds what it was told about and fails on anything else, so the arguments are
+    /// asked of the process, not of the code.
+    /// </summary>
+    [Fact]
+    public async Task CallTool_EveryArgumentKind_IsBoundByTheProgram()
+    {
+        using var cancellation = new CancellationTokenSource(Timeout);
+        await using var session = await SessionAsync("root=/workspaces/0c2b9e1f/step-2", cancellation.Token);
+
+        var report = await session.CallJobAsync("security_scan", new Dictionary<string, object?> { ["checks"] = new[] { "code" } }, cancellationToken: cancellation.Token);
+        var page = await session.CallToolAsync("security_findings", new Dictionary<string, object?> { ["severity"] = "high", ["check"] = "code", ["offset"] = 0, ["limit"] = 5 }, cancellationToken: cancellation.Token);
+
+        var run = Assert.Single(report.Result!.Value.GetProperty("runs").EnumerateArray());
+        Assert.Equal("code", run.GetProperty("check").GetString());
+        Assert.NotEqual(true, page.IsError);
+        Assert.Equal(0, page.StructuredContent!.Value.GetProperty("total").GetInt32());
+    }
+
     /// <summary>A page in a browser always sends Origin and an agent's client never does: no web page may reach the scans.</summary>
     [Fact]
     public async Task Request_FromABrowser_IsRefused()

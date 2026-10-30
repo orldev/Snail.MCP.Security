@@ -8,7 +8,11 @@ using Snail.Sdk.Mcp.Hosting.Jobs;
 namespace Snail.MCP.Security.Tools;
 
 /// <summary>Answers as tool results: JSON with an ok flag, the data on success, error and hint otherwise.</summary>
-/// <remarks>A scan that found problems is a success of the tool: the problems are the copy's, told in the data.</remarks>
+/// <remarks>
+/// A scan that found problems is a success of the tool: the problems are the copy's, told in the data. The structured
+/// content is written through the generated context: a native build has no reflection to serialize with, and every tool
+/// failed there with "an error occurred" until it was.
+/// </remarks>
 public static class ToolResponse
 {
     private static readonly JsonSerializerOptions Options = new()
@@ -37,7 +41,7 @@ public static class ToolResponse
     public static CallToolResult Success(JsonObject data) => new()
     {
         Content = [new TextContentBlock { Text = new JsonObject { ["ok"] = true, ["data"] = data.DeepClone() }.ToJsonString(Options) }],
-        StructuredContent = JsonSerializer.SerializeToElement(data, Options)
+        StructuredContent = JsonSerializer.SerializeToElement(data, AnswerJson.Default.JsonObject)
     };
 
     /// <summary>A result saying why nothing happened.</summary>
@@ -45,7 +49,7 @@ public static class ToolResponse
     {
         IsError = true,
         Content = [new TextContentBlock { Text = new JsonObject { ["ok"] = false, ["error"] = error, ["hint"] = hint }.ToJsonString(Options) }],
-        StructuredContent = JsonSerializer.SerializeToElement(new JsonObject { ["error"] = error, ["hint"] = hint }, Options)
+        StructuredContent = JsonSerializer.SerializeToElement(new JsonObject { ["error"] = error, ["hint"] = hint }, AnswerJson.Default.JsonObject)
     };
 
     /// <summary>An enum value as the answer spells it.</summary>
