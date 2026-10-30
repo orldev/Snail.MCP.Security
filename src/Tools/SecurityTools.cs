@@ -1,23 +1,37 @@
 using System.ComponentModel;
-using Microsoft.Extensions.Options;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using Snail.MCP.Security.Application;
-using Snail.MCP.Security.Configuration;
 
 namespace Snail.MCP.Security.Tools;
 
 /// <summary>Scans of the task's working copy, and their findings page by page.</summary>
+/// <remarks>
+/// A scan takes from seconds to the whole scan time, so it runs as a job: the tool answers within the wait the client
+/// allows with the scan, or with the running job at <c>job://security/scan/&lt;id&gt;</c>, whose resource carries the scan
+/// once it ends. A client that went away no longer takes the scan down with it: the scan ends and is kept, and
+/// security_findings reads it. Asked for again while it runs, the same scan is joined rather than started twice.
+/// </remarks>
 [McpServerToolType]
-public sealed class SecurityTools(Scans scans, IOptions<SecurityOptions> options)
+public sealed class SecurityTools(Scans scans, ScanJobs running)
 {
-    /// <summary>Scans the working copy.</summary>
+    /// <summary>Scans the working copy as a job.</summary>
     [McpServerTool(Name = "security_scan", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
     [Description(ToolDescriptions.Scan)]
     public async Task<CallToolResult> ScanAsync(
         [Description(ToolDescriptions.ScanChecks)] string[]? checks = null,
-        CancellationToken cancellationToken = default) =>
-        ToolResponse.From(await scans.ScanAsync(checks, cancellationToken), options.Value.ShownFindings);
+        [Description(ToolDescriptions.ScanWait)] int wait = 60,
+        CancellationToken cancellationToken = default)
+    {
+        var request = scans.Plan(checks);
+        if (request.Value is not { } wanted)
+            return ToolResponse.Failure(request.Error!, request.Hint);
+
+        var job = running.Start(wanted);
+        var report = await job.ForAsync(TimeSpan.FromSeconds(wait), cancellationToken);
+
+        return ToolResponse.Job(report);
+    }
 
     /// <summary>Reads a page of the last scan's findings.</summary>
     [McpServerTool(Name = "security_findings", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]

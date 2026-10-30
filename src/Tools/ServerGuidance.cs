@@ -10,8 +10,9 @@ public static class ServerGuidance
         container and infrastructure settings, and insecure code. Every finding names the ENS measures and NIS2 letters
         it falls under.
 
-        Start with security_scan. Fix what it says blocks the work — critical and high findings — then scan again: the
-        answer says what got fixed since the scan before. Update a package to the version the finding names; take a
+        Start with security_scan. It answers with the scan's job: the scan itself in result when it ended within the wait,
+        or the running job, whose resource carries the scan once it ends. Fix what the scan says blocks the work — critical
+        and high findings — then scan again: the answer says what got fixed since the scan before. Update a package to the version the finding names; take a
         secret out of the files and say it has to be rotated, since it was exposed; change the setting or the code the
         finding points at. Read the rest with security_findings.
 

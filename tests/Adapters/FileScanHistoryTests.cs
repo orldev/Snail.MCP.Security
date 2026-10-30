@@ -1,10 +1,11 @@
 using Snail.MCP.Security.Adapters;
+using Snail.Sdk.Mcp.Testing;
 
 namespace Snail.MCP.Security.Tests.Adapters;
 
 public sealed class FileScanHistoryTests : IDisposable
 {
-    private readonly string _folder = Directory.CreateTempSubdirectory("security-history-").FullName;
+    private readonly string _folder = TestFolder.Create();
 
     public void Dispose() => Directory.Delete(_folder, recursive: true);
 

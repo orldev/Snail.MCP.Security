@@ -10,26 +10,34 @@ public sealed class Scans(SessionCopy session, IScanner scanner, IScanHistory hi
     /// <summary>The checks a caller may name, as the tools spell them.</summary>
     public static readonly IReadOnlyDictionary<string, Check> Words = Checks.Copy.ToDictionary(Word, check => check, StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>Scans the copy with the checks named, every one when none is, and says how the result compares with the task's scan before.</summary>
-    public async Task<Answer<ScanReport>> ScanAsync(IReadOnlyList<string>? checks, CancellationToken cancellationToken)
+    /// <summary>The scan this session asks for: its copy, and the checks named, every one when none is.</summary>
+    /// <remarks>Read while the request is still the session's: the scan itself runs as a job, after the call that started it may have ended.</remarks>
+    public Answer<ScanRequest> Plan(IReadOnlyList<string>? checks)
     {
         var place = session.Current();
         if (place.Value is not { } copy)
-            return Answer.Failed<ScanReport>(place.Error!, place.Hint);
+            return Answer.Failed<ScanRequest>(place.Error!, place.Hint);
 
         var unknown = (checks ?? []).Where(word => !Words.ContainsKey(word)).ToList();
         if (unknown.Count > 0)
-            return Answer.Failed<ScanReport>(Messages.UnknownChecks(unknown, Words.Keys));
+            return Answer.Failed<ScanRequest>(Messages.UnknownChecks(unknown, Words.Keys));
 
         IReadOnlyCollection<Check> wanted = checks is { Count: > 0 } ? [.. checks.Select(word => Words[word]).Distinct()] : Checks.Copy;
-        var outcome = await scanner.ScanAsync(copy, wanted, cancellationToken);
-        var before = await history.LastAsync(copy.Task, cancellationToken);
+
+        return Answer.Ok(new ScanRequest(copy, wanted));
+    }
+
+    /// <summary>Scans the copy with the checks asked for, says how the result compares with the task's scan before, and keeps it.</summary>
+    public async Task<ScanReport> RunAsync(ScanRequest request, CancellationToken cancellationToken)
+    {
+        var outcome = await scanner.ScanAsync(request.Copy, request.Checks, cancellationToken);
+        var before = await history.LastAsync(request.Copy.Task, cancellationToken);
         var report = new ScanReport(clock.GetUtcNow(), outcome.Findings, outcome.Runs, null);
         var compared = before is null ? report : report with { Since = report.Against(before) };
 
-        await history.SaveAsync(copy.Task, compared, cancellationToken);
+        await history.SaveAsync(request.Copy.Task, compared, cancellationToken);
 
-        return Answer.Ok(compared);
+        return compared;
     }
 
     /// <summary>One page of the task's last scan, narrowed to a severity and up and to one check when the caller names them.</summary>
@@ -70,3 +78,6 @@ public sealed class Scans(SessionCopy session, IScanner scanner, IScanHistory hi
     /// <summary>A check as the tools spell it.</summary>
     public static string Word(Check check) => check.ToString().ToLowerInvariant();
 }
+
+/// <summary>A scan asked for: the copy and the checks to run on it.</summary>
+public sealed record ScanRequest(CopyPlace Copy, IReadOnlyCollection<Check> Checks);

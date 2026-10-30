@@ -101,11 +101,36 @@ public static class ScannerReports
         return findings;
     }
 
+    /// <summary>What the .NET scanner said in place of a project's report: the first line of each document that is not one, and each error a report names.</summary>
+    /// <remarks>
+    /// Without a solution at the root every project is listed on its own, and one that fails to open prints
+    /// <c>error: MsBuild was unable to open Project …</c> where its JSON would be. Read as nothing, it let the packages
+    /// check pass on the projects that did open.
+    /// </remarks>
+    public static IReadOnlyList<string> DotnetFailures(string output)
+    {
+        List<string> failures = [];
+
+        foreach (string document in output.Split(Separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (Parse(document) is not JsonObject report)
+            {
+                failures.Add(Unmounted(document.ReplaceLineEndings("\n").Split('\n')[0]));
+                continue;
+            }
+
+            var errors = Array(report["problems"]).Where(problem => string.Equals((string?)problem?["level"], "error", StringComparison.OrdinalIgnoreCase));
+            failures.AddRange(errors.Select(problem => Unmounted((string?)problem?["text"] ?? "error")));
+        }
+
+        return failures;
+    }
+
     /// <summary>The findings with each problem once: the same advisory on the same package and version found by two scanners is kept with the richer of the two.</summary>
     public static IReadOnlyList<Finding> Merged(IEnumerable<Finding> findings) =>
         [
             .. findings
-                .GroupBy(finding => finding.Key, StringComparer.Ordinal)
+                .GroupBy(finding => finding.Identity, StringComparer.Ordinal)
                 .Select(same => same.OrderByDescending(finding => finding.FixedIn is not null).ThenBy(finding => finding.Title.StartsWith("Known vulnerability", StringComparison.Ordinal)).First())
         ];
 
@@ -158,16 +183,21 @@ public static class ScannerReports
 
     private static string At(string path, int? line) => line is { } number ? $"{path}:{number}" : path;
 
+    /// <summary>The folders a scanner was given the copy at, or copied it to: the .NET scanner's own copy first.</summary>
+    private static readonly string[] Mounts = [$"{ScannerJob.Source}/", "/tmp/src/", "/src/"];
+
     /// <summary>A path as the working copy names it: no leading ./ or the folder the scanner mounted or copied it to.</summary>
     private static string Relative(string path)
     {
         string trimmed = path.StartsWith("./", StringComparison.Ordinal) ? path[2..] : path;
 
-        string[] mounts = ["/tmp/src/", "/src/"];
-        string? mount = mounts.FirstOrDefault(prefix => trimmed.StartsWith(prefix, StringComparison.Ordinal));
+        string? mount = Mounts.FirstOrDefault(prefix => trimmed.StartsWith(prefix, StringComparison.Ordinal));
 
         return mount is null ? trimmed.TrimStart('/') : trimmed[mount.Length..];
     }
+
+    /// <summary>The .NET scanner's words with the folder of its own copy taken out, so a path in them is the copy's own.</summary>
+    private static string Unmounted(string text) => text.Replace($"{ScannerJob.Source}/", string.Empty, StringComparison.Ordinal);
 
     private static JsonNode? Parse(string json)
     {

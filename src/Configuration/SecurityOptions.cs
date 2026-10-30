@@ -33,8 +33,11 @@ public sealed class SecurityOptions
     public string SemgrepImage { get; set; } = "semgrep/semgrep:1.181.0@sha256:81474464c1f07483ba0682a44787fd93c91397419762a04abe2bafaae396304b";
 
     /// <summary>The .NET SDK, which lists the vulnerable NuGet packages of a project from NuGet's own advisories.</summary>
-    /// <remarks>Trivy finds NuGet packages only in a lock file or a central props file; a plain project file it does not read.</remarks>
-    public string SdkImage { get; set; } = "mcr.microsoft.com/dotnet/sdk:10.0";
+    /// <remarks>
+    /// Trivy finds NuGet packages only in a lock file or a central props file; a plain project file it does not read. The
+    /// band is the one every Snail repository pins in its global.json, so a restore finds the SDK the copy asks for.
+    /// </remarks>
+    public string SdkImage { get; set; } = "mcr.microsoft.com/dotnet/sdk:10.0.302@sha256:72dd743782f2ae7e5476fd64f6a460045e3998dc862218b80e6944cba79a01b0";
 
     /// <summary>The Semgrep rule sets code is checked with, from Semgrep's registry.</summary>
     public string[] SemgrepConfigs { get; set; } = ["p/csharp", "p/default"];

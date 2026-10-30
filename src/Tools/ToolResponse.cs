@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using ModelContextProtocol.Protocol;
 using Snail.MCP.Security.Application;
+using Snail.Sdk.Mcp.Hosting.Jobs;
 
 namespace Snail.MCP.Security.Tools;
 
@@ -16,9 +17,9 @@ public static class ToolResponse
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
-    /// <summary>A scan as a tool result, with its worst findings.</summary>
-    public static CallToolResult From(Answer<ScanReport> answer, int shown) =>
-        answer.Value is { } report ? Success(Data(report, shown)) : Failure(answer.Error ?? "The scan did not happen.", answer.Hint);
+    /// <summary>A job as a tool result: its report, with the scan as its result once it ended.</summary>
+    /// <remarks>The report is the structured content, which a job client reads; the text carries it under ok and data, as every answer of this server does.</remarks>
+    public static CallToolResult Job(JobReport report) => Success(JsonNode.Parse(report.ToJson())!.AsObject());
 
     /// <summary>A page of findings as a tool result.</summary>
     public static CallToolResult From(Answer<FindingPage> answer) =>
@@ -50,7 +51,8 @@ public static class ToolResponse
     /// <summary>An enum value as the answer spells it.</summary>
     public static string Word<TEnum>(TEnum value) where TEnum : struct, Enum => value.ToString().ToLowerInvariant();
 
-    private static JsonObject Data(ScanReport report, int shown)
+    /// <summary>A scan as an answer carries it: the verdict, each check's run, the comparison and the worst findings.</summary>
+    public static JsonObject Scan(ScanReport report, int shown)
     {
         var counts = new JsonObject([.. Enum.GetValues<Severity>().Select(severity => KeyValuePair.Create(Word(severity), (JsonNode?)report.Findings.Count(finding => finding.Severity == severity)))]);
         var ordered = report.Ordered;

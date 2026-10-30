@@ -17,14 +17,28 @@ public sealed record ScanReport(DateTimeOffset At, IReadOnlyList<Finding> Findin
         [.. Findings.OrderBy(finding => finding.Severity).ThenBy(finding => finding.Check).ThenBy(finding => finding.Location, StringComparer.Ordinal)];
 
     /// <summary>How this scan compares with <paramref name="before"/>, over the checks both of them ran: a check left out now fixed nothing.</summary>
+    /// <remarks>
+    /// Counted per problem, not per kind of problem: two secrets of one rule in one file share a key, and fixing one of
+    /// them is one fixed and one remaining, not nothing at all.
+    /// </remarks>
     public Comparison Against(ScanReport before)
     {
         var ran = Runs.Where(run => run.HasRun).Select(run => run.Check).Intersect(before.Runs.Where(run => run.HasRun).Select(run => run.Check)).ToHashSet();
-        var now = Findings.Where(finding => ran.Contains(finding.Check)).Select(finding => finding.Key).ToHashSet(StringComparer.Ordinal);
-        var then = before.Findings.Where(finding => ran.Contains(finding.Check)).Select(finding => finding.Key).ToHashSet(StringComparer.Ordinal);
+        var now = CountsOf(Findings, ran);
+        var then = CountsOf(before.Findings, ran);
 
-        return new Comparison(then.Count(key => !now.Contains(key)), now.Count(key => !then.Contains(key)), now.Count(then.Contains));
+        int fixedCount = then.Sum(pair => Math.Max(0, pair.Value - now.GetValueOrDefault(pair.Key)));
+        int newCount = now.Sum(pair => Math.Max(0, pair.Value - then.GetValueOrDefault(pair.Key)));
+        int remaining = now.Sum(pair => Math.Min(pair.Value, then.GetValueOrDefault(pair.Key)));
+
+        return new Comparison(fixedCount, newCount, remaining);
     }
+
+    private static Dictionary<string, int> CountsOf(IEnumerable<Finding> findings, HashSet<Check> ran) =>
+        findings
+            .Where(finding => ran.Contains(finding.Check))
+            .GroupBy(finding => finding.Key, StringComparer.Ordinal)
+            .ToDictionary(same => same.Key, same => same.Count(), StringComparer.Ordinal);
 }
 
 /// <summary>What the scanners left: every finding they made, and each check's run.</summary>

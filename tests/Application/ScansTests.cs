@@ -10,36 +10,6 @@ public sealed class ScansTests
 {
     private const string Copy = "/workspaces/0c2b9e1f/step-2";
 
-    private sealed class FakeScanner : IScanner
-    {
-        public List<IReadOnlyCollection<Check>> Asked { get; } = [];
-
-        public ScanOutcome Next { get; set; } = new([], []);
-
-        public Task<ScanOutcome> ScanAsync(CopyPlace copy, IReadOnlyCollection<Check> checks, CancellationToken cancellationToken)
-        {
-            Asked.Add(checks);
-
-            return Task.FromResult(Next with { Runs = [.. checks.Select(check => new CheckRun(check, true))] });
-        }
-
-        public Task<Answer<string>> ReachAsync(CancellationToken cancellationToken) => Task.FromResult(Answer.Ok("1.10"));
-    }
-
-    private sealed class MemoryHistory : IScanHistory
-    {
-        private readonly Dictionary<string, ScanReport> _kept = [];
-
-        public Task<ScanReport?> LastAsync(string task, CancellationToken cancellationToken) => Task.FromResult(_kept.GetValueOrDefault(task));
-
-        public Task SaveAsync(string task, ScanReport report, CancellationToken cancellationToken)
-        {
-            _kept[task] = report;
-
-            return Task.CompletedTask;
-        }
-    }
-
     private static Scans Of(FakeScanner scanner, IScanHistory history, string? root = Copy)
     {
         var context = new DefaultHttpContext();
@@ -51,6 +21,15 @@ public sealed class ScansTests
         return new Scans(new SessionCopy(new HttpContextAccessor { HttpContext = context }, options), scanner, history, options, TimeProvider.System);
     }
 
+    private static async Task<Answer<ScanReport>> ScanAsync(Scans scans, IReadOnlyList<string>? checks)
+    {
+        var request = scans.Plan(checks);
+        if (request.Value is not { } wanted)
+            return Answer.Failed<ScanReport>(request.Error!, request.Hint);
+
+        return Answer.Ok(await scans.RunAsync(wanted, CancellationToken.None));
+    }
+
     private static readonly Finding Secret = new(Check.Secrets, Severity.Critical, "github-pat", "token", "appsettings.json:5");
 
     private static readonly Finding Package = new(Check.Packages, Severity.High, "GHSA-5crp-9r3c-p9vr", "Newtonsoft", "Shop.Api.csproj", "Newtonsoft.Json", "12.0.3", "13.0.1");
@@ -60,7 +39,7 @@ public sealed class ScansTests
     {
         var scanner = new FakeScanner();
 
-        await Of(scanner, new MemoryHistory()).ScanAsync(null, CancellationToken.None);
+        await ScanAsync(Of(scanner, new MemoryHistory()), null);
 
         Assert.Equal(Checks.Copy, Assert.Single(scanner.Asked).Order());
     }
@@ -70,10 +49,10 @@ public sealed class ScansTests
     {
         var scanner = new FakeScanner { Next = new([Secret, Package], []) };
         var history = new MemoryHistory();
-        await Of(scanner, history).ScanAsync(null, CancellationToken.None);
+        await ScanAsync(Of(scanner, history), null);
         scanner.Next = new([Secret], []);
 
-        var answer = await Of(scanner, history).ScanAsync(null, CancellationToken.None);
+        var answer = await ScanAsync(Of(scanner, history), null);
 
         Assert.Equal(new Comparison(1, 0, 1), answer.Value!.Since);
         Assert.False(answer.Value.IsClean);
@@ -84,7 +63,7 @@ public sealed class ScansTests
     {
         var scanner = new FakeScanner();
 
-        var answer = await Of(scanner, new MemoryHistory()).ScanAsync(["packages", "licences"], CancellationToken.None);
+        var answer = await ScanAsync(Of(scanner, new MemoryHistory()), ["packages", "licences"]);
 
         Assert.Equal(Messages.UnknownChecks(["licences"], Scans.Words.Keys), answer.Error);
         Assert.Empty(scanner.Asked);
@@ -93,7 +72,7 @@ public sealed class ScansTests
     [Fact]
     public async Task ScanAsync_SessionWithoutACopy_SaysWhereTheCopyComesFrom()
     {
-        var answer = await Of(new FakeScanner(), new MemoryHistory(), root: null).ScanAsync(null, CancellationToken.None);
+        var answer = await ScanAsync(Of(new FakeScanner(), new MemoryHistory(), root: null), null);
 
         Assert.Equal(Messages.NoCopyHint, answer.Hint);
     }
@@ -103,7 +82,7 @@ public sealed class ScansTests
     {
         var scanner = new FakeScanner { Next = new([Package, Secret, new Finding(Check.Code, Severity.Low, "r", "t", "a.cs:1")], []) };
         var history = new MemoryHistory();
-        await Of(scanner, history).ScanAsync(null, CancellationToken.None);
+        await ScanAsync(Of(scanner, history), null);
 
         var high = await Of(scanner, history).FindingsAsync("high", null, 0, null, CancellationToken.None);
         var code = await Of(scanner, history).FindingsAsync(null, "code", 0, null, CancellationToken.None);

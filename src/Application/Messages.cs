@@ -42,6 +42,9 @@ public static class Messages
     /// <summary>Nomad did not answer.</summary>
     public static string SchedulerDown(string address, string reason) => $"Nomad at {address} did not answer: {reason}";
 
+    /// <summary>Nomad answered, but did not run the scan.</summary>
+    public static string SchedulerFailed(string address, string reason) => $"Nomad at {address} did not run the scan: {reason}";
+
     /// <summary>Where Nomad comes from.</summary>
     public const string SchedulerDownHint = "Scans run through Nomad: start the stand with SWARM_NOMAD=1, or point SNAIL_MCP_SECURITY_NOMAD_ADDRESS at it.";
 

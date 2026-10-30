@@ -8,13 +8,17 @@ Trivy), secrets written into files, insecure Dockerfile, compose and Kubernetes 
 by Semgrep. Each finding carries a severity — critical, high, medium, low or unknown — where it is, the version that fixes a package when
 one is known, and the ENS measures and NIS2 letters it falls under. The scan is clean when nothing is critical or
 high and every check ran. The answer names the 20 worst findings and how this scan compares with the task's scan
-before it: fixed, new, remaining. A scan takes up to 900 seconds; scans run one at a time.
+before it: fixed, new, remaining. A scan takes up to 900 seconds; scans run one at a time. The scan runs as a job:
+the answer is the job's report, with the scan as its result when it ends within the wait, or the running job,
+whose resource job://security/scan/&lt;id&gt; carries the scan once it ends; the last scan is also read with
+security_findings. Asking for the same scan while it runs answers with that scan's job, not a second scan.
 
 *read-only · repeat-safe · stays on this machine.*
 
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `checks` | `array?` | — | `null` | Which checks to run, any of packages, secrets, config and code; every one when not given. |
+| `wait` | `integer` | — | `60` | Seconds to wait for the scan before answering with the running job; 60 when not given, 0 answers with the job at once. |
 
 <details><summary>JSON Schema</summary>
 
@@ -35,6 +39,11 @@ before it: fixed, new, remaining. A scan takes up to 900 seconds; scans run one 
         ]
       },
       "default": null
+    },
+    "wait": {
+      "description": "Seconds to wait for the scan before answering with the running job; 60 when not given, 0 answers with the job at once.",
+      "type": "integer",
+      "default": 60
     }
   }
 }

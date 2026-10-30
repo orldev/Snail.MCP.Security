@@ -17,6 +17,9 @@ public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<Egres
     /// <summary>The longest request head read before the request is refused.</summary>
     internal const int MaxHeadBytes = 16 * 1024;
 
+    /// <summary>How long a connection may take to say where it goes before it is dropped.</summary>
+    internal static readonly TimeSpan HeadTimeout = TimeSpan.FromSeconds(30);
+
     private TcpListener? _listener;
 
     /// <summary>The port the proxy listens on, once it does; zero before it starts or when it is off.</summary>
@@ -68,7 +71,10 @@ public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<Egres
             try
             {
                 NetworkStream stream = client.GetStream();
-                if (await HeadAsync(stream, cancellationToken) is not { } head)
+                using var heading = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                heading.CancelAfter(HeadTimeout);
+
+                if (await HeadAsync(stream, heading.Token) is not { } head)
                     return;
 
                 if (Request.Of(head) is not { } request)
@@ -93,6 +99,11 @@ public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<Egres
         }
     }
 
+    /// <summary>Joins the connection to the host it asked for, both ways, until either side ends.</summary>
+    /// <remarks>
+    /// Once one direction ends, the other is cancelled and awaited before the upstream socket is disposed: it used to be
+    /// left copying on a socket already disposed, its exception unobserved (CA2025).
+    /// </remarks>
     private static async Task ForwardAsync(NetworkStream stream, Request request, byte[] head, CancellationToken cancellationToken)
     {
         using var upstream = new TcpClient();
@@ -104,9 +115,28 @@ public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<Egres
         else
             await far.WriteAsync(request.Forwarded(head), cancellationToken);
 
-        Task outbound = stream.CopyToAsync(far, cancellationToken);
-        Task inbound = far.CopyToAsync(stream, cancellationToken);
+        using var both = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        Task outbound = stream.CopyToAsync(far, both.Token);
+        Task inbound = far.CopyToAsync(stream, both.Token);
+
         await Task.WhenAny(outbound, inbound);
+        await both.CancelAsync();
+
+        await EndedAsync(outbound);
+        await EndedAsync(inbound);
+    }
+
+    /// <summary>Waits for a copy that was told to stop; how it stopped is the connection's end, not a failure.</summary>
+    private static async Task EndedAsync(Task copy)
+    {
+        try
+        {
+            await copy;
+        }
+        catch (Exception exception) when (exception is IOException or SocketException or OperationCanceledException or ObjectDisposedException)
+        {
+            return;
+        }
     }
 
     private static async Task<byte[]?> HeadAsync(NetworkStream stream, CancellationToken cancellationToken)

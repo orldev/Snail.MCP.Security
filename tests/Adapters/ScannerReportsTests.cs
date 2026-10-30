@@ -68,10 +68,50 @@ public sealed class ScannerReportsTests
         Assert.All(merged, finding => Assert.NotNull(finding.FixedIn));
     }
 
+    /// <summary>Two keys of one rule in one file are two secrets to take out, not one: the second must be shown too.</summary>
+    [Fact]
+    public void Merged_TwoSecretsOfOneRuleInOneFile_KeepsBoth()
+    {
+        Finding first = new(Check.Secrets, Severity.Critical, "aws-access-key-id", "AWS key", "appsettings.json:3");
+        Finding second = new(Check.Secrets, Severity.Critical, "aws-access-key-id", "AWS key", "appsettings.json:40");
+
+        var merged = ScannerReports.Merged([first, second]);
+
+        Assert.Equal(2, merged.Count);
+    }
+
+    /// <summary>A project that failed to open prints an error where its JSON would be: that is a failure to name, not a clean project.</summary>
+    [Fact]
+    public void DotnetFailures_OneProjectOfTwoFailedToOpen_NamesItsError()
+    {
+        const string clean = """{"version":1,"parameters":"--vulnerable","projects":[{"path":"/tmp/src/A/A.csproj","frameworks":[]}]}""";
+        string output = $"{clean}\n{ScannerReports.Separator}\nerror: MsBuild was unable to open Project '{ScannerJob.Source}/B/B.csproj'.\n{ScannerReports.Separator}";
+
+        var failure = Assert.Single(ScannerReports.DotnetFailures(output));
+
+        Assert.Equal("error: MsBuild was unable to open Project 'B/B.csproj'.", failure);
+    }
+
+    [Fact]
+    public void DotnetFailures_ReportsThatAllOpened_AreNone()
+    {
+        string output = $"{Fixture("dotnet-vulnerable.json")}\n{ScannerReports.Separator}\n";
+
+        Assert.Empty(ScannerReports.DotnetFailures(output));
+    }
+
     [Fact]
     public void Dotnet_ProjectPathInTheScannersCopy_IsRelativeToTheWorkingCopy()
     {
         string report = Fixture("dotnet-vulnerable.json").Replace("\"/src/T.csproj\"", "\"/tmp/src/src/Shop.Api/Shop.Api.csproj\"", StringComparison.Ordinal);
+
+        Assert.All(ScannerReports.Dotnet(report), finding => Assert.Equal("src/Shop.Api/Shop.Api.csproj", finding.Location));
+    }
+
+    [Fact]
+    public void Dotnet_ProjectPathInTheIsolatedCopy_IsRelativeToTheWorkingCopy()
+    {
+        string report = Fixture("dotnet-vulnerable.json").Replace("\"/src/T.csproj\"", $"\"{ScannerJob.Source}/src/Shop.Api/Shop.Api.csproj\"", StringComparison.Ordinal);
 
         Assert.All(ScannerReports.Dotnet(report), finding => Assert.Equal("src/Shop.Api/Shop.Api.csproj", finding.Location));
     }

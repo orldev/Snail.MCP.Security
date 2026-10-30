@@ -11,7 +11,8 @@
 #
 #   docker build -t s3l-security-mcp:local --build-arg VERSION=0.0.0-local.$(git rev-parse --short HEAD) .
 #
-# The server listens on every interface at 8829 for the platform's workers, and its egress proxy at 3128 for the
+# The server listens on every interface at the port of SNAIL_MCP_SECURITY_URL (8829) for the platform's workers
+# (McpHttpHost.CreateContainerBuilder: a browser's request is still refused), and its egress proxy at 3128 for the
 # scanners it runs. The SDK is pinned to the band global.json asks for: on the floating sdk:10.0 a newer feature
 # band would one day refuse the build. The server is framework-dependent: published without Native AOT onto the
 # ASP.NET runtime.
@@ -30,9 +31,6 @@ WORKDIR /app
 COPY --from=build /app .
 # The scan history lives in the server's data folder, a volume on the stand: made here so the volume takes the app user's ownership.
 RUN mkdir -p /home/app/.s3l-mcp-security && chown -R app:app /home/app
-ENV ASPNETCORE_HTTP_PORTS=8829 \
-    Logging__LogLevel__Default=Information \
-    Logging__LogLevel__Microsoft.AspNetCore=Warning
 EXPOSE 8829 3128
 USER app
 

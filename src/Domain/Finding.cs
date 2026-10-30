@@ -84,6 +84,10 @@ public sealed record Finding(
     /// <summary>What makes two scans' findings the same problem: the line moves when code above it changes, so it is left out.</summary>
     public string Key => $"{Check}|{Rule}|{Package ?? FileOf(Location)}|{Version}";
 
+    /// <summary>What makes two findings of one scan the same problem: a package's advisory wherever two scanners found it, anything else at its own line.</summary>
+    /// <remarks>Merging by <see cref="Key"/> alone kept one of two secrets of one rule in one file, and the second was never shown.</remarks>
+    public string Identity => Package is null ? $"{Key}|{Location}" : Key;
+
     /// <summary>Whether the finding stops the work from being done: critical or high.</summary>
     public bool IsBlocking => Severity is Severity.Critical or Severity.High;
 

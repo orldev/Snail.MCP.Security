@@ -40,6 +40,16 @@ public sealed class ScanReportTests
         Assert.Equal(new Comparison(0, 0, 0), now.Against(before));
     }
 
+    /// <summary>Two secrets of one rule in one file share a key: taking one out is one fixed and one remaining.</summary>
+    [Fact]
+    public void Against_TwoProblemsOfOneKeyAndOneFixed_CountsOneFixedOneRemaining()
+    {
+        var before = new ScanReport(At, [new Finding(Check.Secrets, Severity.Critical, "aws-access-key-id", "t", "s.json:3"), new Finding(Check.Secrets, Severity.Critical, "aws-access-key-id", "t", "s.json:40")], All, null);
+        var now = new ScanReport(At, [new Finding(Check.Secrets, Severity.Critical, "aws-access-key-id", "t", "s.json:3")], All, null);
+
+        Assert.Equal(new Comparison(1, 0, 1), now.Against(before));
+    }
+
     [Fact]
     public void Ordered_Findings_AreWorstFirst()
     {

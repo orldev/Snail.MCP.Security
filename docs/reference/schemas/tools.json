@@ -1,7 +1,7 @@
 [
   {
     "name": "security_scan",
-    "description": "Scan the task\u0027s working copy for security problems and get back what blocks the work. The checks are\npackages, secrets, config and code: packages with a published vulnerability (NuGet from NuGet\u0027s own advisories, every other ecosystem by\nTrivy), secrets written into files, insecure Dockerfile, compose and Kubernetes settings, and insecure code found\nby Semgrep. Each finding carries a severity \u2014 critical, high, medium, low or unknown \u2014 where it is, the version that fixes a package when\none is known, and the ENS measures and NIS2 letters it falls under. The scan is clean when nothing is critical or\nhigh and every check ran. The answer names the 20 worst findings and how this scan compares with the task\u0027s scan\nbefore it: fixed, new, remaining. A scan takes up to 900 seconds; scans run one at a time.",
+    "description": "Scan the task\u0027s working copy for security problems and get back what blocks the work. The checks are\npackages, secrets, config and code: packages with a published vulnerability (NuGet from NuGet\u0027s own advisories, every other ecosystem by\nTrivy), secrets written into files, insecure Dockerfile, compose and Kubernetes settings, and insecure code found\nby Semgrep. Each finding carries a severity \u2014 critical, high, medium, low or unknown \u2014 where it is, the version that fixes a package when\none is known, and the ENS measures and NIS2 letters it falls under. The scan is clean when nothing is critical or\nhigh and every check ran. The answer names the 20 worst findings and how this scan compares with the task\u0027s scan\nbefore it: fixed, new, remaining. A scan takes up to 900 seconds; scans run one at a time. The scan runs as a job:\nthe answer is the job\u0027s report, with the scan as its result when it ends within the wait, or the running job,\nwhose resource job://security/scan/\u003Cid\u003E carries the scan once it ends; the last scan is also read with\nsecurity_findings. Asking for the same scan while it runs answers with that scan\u0027s job, not a second scan.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -18,6 +18,11 @@
             ]
           },
           "default": null
+        },
+        "wait": {
+          "description": "Seconds to wait for the scan before answering with the running job; 60 when not given, 0 answers with the job at once.",
+          "type": "integer",
+          "default": 60
         }
       }
     },

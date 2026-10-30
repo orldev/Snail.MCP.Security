@@ -19,8 +19,14 @@ public static class ToolDescriptions
         by Semgrep. Each finding carries a severity — {Severities} — where it is, the version that fixes a package when
         one is known, and the ENS measures and NIS2 letters it falls under. The scan is clean when nothing is critical or
         high and every check ran. The answer names the 20 worst findings and how this scan compares with the task's scan
-        before it: fixed, new, remaining. A scan takes up to 900 seconds; scans run one at a time.
+        before it: fixed, new, remaining. A scan takes up to 900 seconds; scans run one at a time. The scan runs as a job:
+        the answer is the job's report, with the scan as its result when it ends within the wait, or the running job,
+        whose resource job://security/scan/<id> carries the scan once it ends; the last scan is also read with
+        security_findings. Asking for the same scan while it runs answers with that scan's job, not a second scan.
         """;
+
+    /// <summary>The wait parameter of security_scan.</summary>
+    public const string ScanWait = "Seconds to wait for the scan before answering with the running job; 60 when not given, 0 answers with the job at once.";
 
     /// <summary>The checks parameter of security_scan.</summary>
     public const string ScanChecks = $"Which checks to run, any of {Checks}; every one when not given.";

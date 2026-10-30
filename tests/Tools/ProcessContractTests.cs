@@ -3,6 +3,8 @@ using System.Net;
 using System.Net.Sockets;
 using ModelContextProtocol.Client;
 using Snail.Sdk.Mcp.Hosting;
+using Snail.Sdk.Mcp.Hosting.Jobs;
+using Snail.Sdk.Mcp.JobClient;
 using Snail.Sdk.Mcp.Testing;
 
 namespace Snail.MCP.Security.Tests.Tools;
@@ -31,7 +33,8 @@ public sealed class ProcessContractTests : IAsyncLifetime
             RedirectStandardError = true
         };
 
-        start.Environment["ASPNETCORE_URLS"] = _address.ToString();
+        start.Environment["HOME"] = ServerProgram.Home;
+        start.Environment["SNAIL_MCP_SECURITY_URL"] = _address.ToString();
         start.Environment["SNAIL_MCP_SECURITY_NOMAD_ADDRESS"] = $"http://127.0.0.1:{FreePort()}";
         start.Environment[ServerSettings.FileVariableOf("security")] = ServerProgram.NoSettingsFile;
 
@@ -127,6 +130,39 @@ public sealed class ProcessContractTests : IAsyncLifetime
 
         Assert.True(result.IsError);
         Assert.Contains("'security_scan' was not granted", result.Text(), StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The scan as a job end to end: called with no wait, awaited by subscription, ended with every check not run, since
+    /// Nomad's address names a port nothing listens on — a scan that could not be made is a result, not a lost call.
+    /// </summary>
+    [Fact]
+    public async Task CallJob_ScanWithNomadDown_EndsWithEveryCheckNotRun()
+    {
+        using var cancellation = new CancellationTokenSource(Timeout);
+        await using var session = await SessionAsync("root=/workspaces/0c2b9e1f/step-2", cancellation.Token);
+
+        var report = await session.CallJobAsync("security_scan", cancellationToken: cancellation.Token);
+
+        Assert.Equal(JobState.Succeeded, report.State);
+        var runs = report.Result!.Value.GetProperty("runs").EnumerateArray().ToList();
+        Assert.Equal(4, runs.Count);
+        Assert.All(runs, run => Assert.False(run.GetProperty("ran").GetBoolean()));
+    }
+
+    /// <summary>A page in a browser always sends Origin and an agent's client never does: no web page may reach the scans.</summary>
+    [Fact]
+    public async Task Request_FromABrowser_IsRefused()
+    {
+        using var cancellation = new CancellationTokenSource(Timeout);
+        using var http = new HttpClient();
+        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(_address, "/mcp"));
+
+        request.Headers.Add("Origin", "https://example.com");
+
+        using var answer = await http.SendAsync(request, cancellation.Token);
+
+        Assert.Equal(HttpStatusCode.Forbidden, answer.StatusCode);
     }
 
     private Task<McpClient> SessionAsync(string? query, CancellationToken cancellationToken) =>
