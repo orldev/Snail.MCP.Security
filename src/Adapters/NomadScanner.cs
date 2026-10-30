@@ -113,7 +113,8 @@ public sealed class NomadScanner(INomadClient nomad, IFixes fixes, IOptions<Secu
         while (clock.GetElapsedTime(started) < timeout)
         {
             await Task.Delay(Poll, clock, cancellationToken);
-            var allocation = (await nomad.ListAllocationsAsync(job, cancellationToken)).FirstOrDefault();
+            var allocations = await nomad.ListAllocationsAsync(job, cancellationToken: cancellationToken);
+            var allocation = allocations.Items.Count > 0 ? allocations.Items[0] : null;
 
             if (allocation is not null && Ended.Contains(allocation.ClientStatus, StringComparer.Ordinal))
                 return allocation;
