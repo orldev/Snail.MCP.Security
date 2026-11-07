@@ -18,21 +18,6 @@
     <PackageProjectUrl>https://github.com/orldev/Snail.MCP.Security</PackageProjectUrl>
   </PropertyGroup>
 
-  <!--
-    Until a Snail.Sdk release decides these before the .NET SDK's targets: a project on the Web SDK imports Snail.Sdk.Mcp's
-    targets after the .NET SDK's, which by then has imported the AOT compiler only when PublishAot was already set,
-    granted the generated binders their interceptors only when they were already enabled, and turned the AOT and trim
-    analyzers on only when IsAotCompatible was already true — published for a runtime the server came out
-    framework-dependent, a native build failed on CS9137, and no build warned of what a native one would break. Set
-    here, in the project body, all of it comes in time. The condition on PublishAot is Snail.Sdk.Mcp's own.
-  -->
-  <PropertyGroup>
-    <IsAotCompatible>true</IsAotCompatible>
-    <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
-    <EnableRequestDelegateGenerator>true</EnableRequestDelegateGenerator>
-    <PublishAot Condition="'$(PublishAot)' == '' and !('$(SnailMcpContainer)' == 'true' and '$(RuntimeIdentifier)' == '' and '$(_IsPacking)' != 'true')">true</PublishAot>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="ModelContextProtocol.AspNetCore" />
     <PackageReference Include="Snail.Toolkit.Nomad" />
