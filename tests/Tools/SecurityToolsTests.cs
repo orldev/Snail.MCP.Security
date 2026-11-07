@@ -58,6 +58,20 @@ public sealed class SecurityToolsTests
         Assert.True(ended.Result!.Value.GetProperty("clean").GetBoolean());
     }
 
+    /// <summary>A scan belongs to the task of its copy: a client of another task finds no job at its URI.</summary>
+    [Fact]
+    public async Task ScanAsync_JobOfTheScan_BelongsToTheTaskOfTheCopy()
+    {
+        var jobs = new Jobs(SecuritySettings.Name);
+
+        var running = ReportOf(await Of(new FakeScanner(), jobs).ScanAsync(wait: 0));
+
+        Assert.Equal("0c2b9e1f", jobs.Find(running.Uri)!.Owner);
+        Assert.NotNull(jobs.Find(running.Uri, "0c2b9e1f"));
+        Assert.Null(jobs.Find(running.Uri, "7d4a0b33"));
+        Assert.Null(jobs.Find(running.Uri, null));
+    }
+
     /// <summary>A client that waits by asking again joins the scan it started, rather than queueing another behind it.</summary>
     [Fact]
     public async Task ScanAsync_SameScanAskedWhileItRuns_IsJoinedNotStartedAgain()

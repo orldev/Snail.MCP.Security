@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using ModelContextProtocol;
 using ModelContextProtocol.Client;
 using Snail.Sdk.Mcp.Hosting;
 using Snail.Sdk.Mcp.Hosting.Jobs;
@@ -148,6 +149,29 @@ public sealed class ProcessContractTests : IAsyncLifetime
         var runs = report.Result!.Value.GetProperty("runs").EnumerateArray().ToList();
         Assert.Equal(4, runs.Count);
         Assert.All(runs, run => Assert.False(run.GetProperty("ran").GetBoolean()));
+    }
+
+    /// <summary>
+    /// A scan is its task's: another step of the task reads its job, a client of another task or of no copy is told the
+    /// job does not exist, as for a URI nobody made — the server is one for every task of the platform.
+    /// </summary>
+    [Fact]
+    public async Task ReadResource_ScanJobOfAnotherTask_IsUnknown()
+    {
+        using var cancellation = new CancellationTokenSource(Timeout);
+        await using var scanning = await SessionAsync("root=/workspaces/0c2b9e1f/step-2", cancellation.Token);
+        await using var nextStep = await SessionAsync("root=/workspaces/0c2b9e1f/step-3", cancellation.Token);
+        await using var otherTask = await SessionAsync("root=/workspaces/7d4a0b33/step-1", cancellation.Token);
+        await using var noCopy = await SessionAsync(null, cancellation.Token);
+
+        var started = await scanning.CallToolAsync("security_scan", new Dictionary<string, object?> { ["wait"] = 0 }, cancellationToken: cancellation.Token);
+        var job = new Uri(JobReport.FromJson(started.StructuredContent!.Value.GetRawText())!.Uri);
+
+        var read = await nextStep.ReadResourceAsync(job, cancellationToken: cancellation.Token);
+
+        Assert.Single(read.Contents);
+        await Assert.ThrowsAnyAsync<McpException>(async () => await otherTask.ReadResourceAsync(job, cancellationToken: cancellation.Token));
+        await Assert.ThrowsAnyAsync<McpException>(async () => await noCopy.ReadResourceAsync(job, cancellationToken: cancellation.Token));
     }
 
     /// <summary>

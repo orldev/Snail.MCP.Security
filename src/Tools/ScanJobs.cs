@@ -11,6 +11,10 @@ namespace Snail.MCP.Security.Tools;
 /// A client that cannot read a job's resource — the platform's worker sees tools, not resources — waits by asking for
 /// the same scan again within its own HTTP timeout. Each ask used to start another scan behind the first; now it is
 /// answered by the scan already running, and a new one starts only once that one ended.
+/// <para>
+/// A scan belongs to its task: the server is one for every task of the platform, and a scan's findings name the
+/// secrets and weak spots of that task's copy. Another task's client reads the scan's job as if it did not exist.
+/// </para>
 /// </remarks>
 public sealed class ScanJobs(Jobs jobs, Scans scans, IOptions<SecurityOptions> options)
 {
@@ -31,7 +35,7 @@ public sealed class ScanJobs(Jobs jobs, Scans scans, IOptions<SecurityOptions> o
                 return running;
 
             int shown = options.Value.ShownFindings;
-            var job = jobs.Start(Kind, async (_, token) => ToolResponse.Scan(await scans.RunAsync(request, token), shown), AnswerJson.Default.JsonObject);
+            var job = jobs.Start(Kind, request.Copy.Task, async (_, token) => ToolResponse.Scan(await scans.RunAsync(request, token), shown), AnswerJson.Default.JsonObject);
 
             _running[key] = job;
             _ = ForgetAsync(key, job);

@@ -1,3 +1,4 @@
+using Snail.MCP.Security.Application;
 using Snail.MCP.Security.Configuration;
 using Snail.MCP.Security.Tools;
 using Snail.Sdk.Mcp.Hosting.Jobs;
@@ -54,7 +55,7 @@ public static class SecurityServerExtensions
                 .WithLocalHttpTransport()
                 .WithTools<SecurityTools>()
                 .WithTools<DiagnosticsTools>()
-                .WithJobs(SecuritySettings.Name);
+                .WithJobs(SecuritySettings.Name, JobOwner);
 
             return builder;
         }
@@ -70,5 +71,17 @@ public static class SecurityServerExtensions
 
             return app;
         }
+    }
+
+    /// <summary>Whose jobs a request may read and watch: the task of the copy its address names, or nobody's.</summary>
+    /// <remarks>
+    /// Every step of a task opens the server with its own copy under the task's folder, so the steps of one task share
+    /// their scans and no other task reaches them. A request that names no copy owns nothing and sees no scan.
+    /// </remarks>
+    private static string? JobOwner(IServiceProvider services)
+    {
+        var copy = services.GetService<SessionCopy>()?.Current();
+
+        return copy?.Value?.Task;
     }
 }
