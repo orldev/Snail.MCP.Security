@@ -8,26 +8,60 @@ namespace Snail.MCP.Security.Adapters;
 
 /// <summary>The one door out of the scanners' network: an HTTP proxy that lets through only the hosts it names.</summary>
 /// <remarks>
+/// <para>
 /// The scanners run on an internal network, so the only way out is this proxy, and it opens only the hosts their
 /// databases and rules come from, and NuGet's, on ports 80 and 443. A scanner reads the task's code: nothing in that code
 /// may reach anywhere else, and neither may a scanner that was told to.
+/// </para>
+/// <para>
+/// It holds its own limits, as Snail.MCP.E2E's restore proxy does: a connection is refused once <see cref="MaxConnections"/>
+/// are open, a request head must arrive within <see cref="HeadTimeout"/>, a host must answer within
+/// <see cref="ConnectTimeout"/>, and a connection quiet both ways for <see cref="IdleTimeout"/> is closed. It held only the
+/// head's limit before: a host that never answered, or a tunnel left open and silent, kept its socket for ever, and so
+/// did any number of them at once. The head is read in blocks, and what came after it — a request's body — goes on to
+/// the host instead of being dropped.
+/// </para>
 /// </remarks>
 public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<EgressProxy> logger) : BackgroundService
 {
     /// <summary>The longest request head read before the request is refused.</summary>
     internal const int MaxHeadBytes = 16 * 1024;
 
-    /// <summary>How long a connection may take to say where it goes before it is dropped.</summary>
-    internal static readonly TimeSpan HeadTimeout = TimeSpan.FromSeconds(30);
+    private const int CopyBytes = 81920;
 
     private TcpListener? _listener;
+    private SemaphoreSlim? _slots;
 
     /// <summary>The port the proxy listens on, once it does; zero before it starts or when it is off.</summary>
     public int Port { get; private set; }
 
+    /// <summary>Most connections open at once; one more is answered 503 and closed.</summary>
+    internal int MaxConnections { get; init; } = 256;
+
+    /// <summary>How long a connection may take to say where it goes before it is dropped.</summary>
+    internal TimeSpan HeadTimeout { get; init; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>How long a host has to accept the connection.</summary>
+    internal TimeSpan ConnectTimeout { get; init; } = TimeSpan.FromSeconds(15);
+
+    /// <summary>How long a connection may pass nothing either way before it is closed.</summary>
+    internal TimeSpan IdleTimeout { get; init; } = TimeSpan.FromMinutes(2);
+
     /// <summary>Whether a request for this host and port may go through.</summary>
     public static bool Allows(IReadOnlyCollection<string> hosts, string host, int port) =>
         port is 80 or 443 && hosts.Contains(host, StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The head of a request and whatever arrived after it, or null while the head has not ended.</summary>
+    internal static Head? Split(ReadOnlySpan<byte> read)
+    {
+        int end = read.IndexOf("\r\n\r\n"u8);
+        if (end < 0)
+            return null;
+
+        int headEnd = end + 4;
+
+        return new Head(read[..headEnd].ToArray(), read[headEnd..].ToArray());
+    }
 
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -35,6 +69,7 @@ public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<Egres
         if (options.Value.ProxyPort <= 0)
             return;
 
+        _slots = new SemaphoreSlim(MaxConnections, MaxConnections);
         _listener = new TcpListener(IPAddress.Any, options.Value.ProxyPort);
         _listener.Start();
         Port = ((IPEndPoint)_listener.LocalEndpoint).Port;
@@ -45,7 +80,9 @@ public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<Egres
             while (!stoppingToken.IsCancellationRequested)
             {
                 TcpClient client = await _listener.AcceptTcpClientAsync(stoppingToken);
-                _ = ServeAsync(client, stoppingToken);
+                bool hasSlot = await _slots.WaitAsync(0, stoppingToken);
+
+                _ = hasSlot ? ServeAsync(client, _slots, stoppingToken) : RefuseBusyAsync(client, stoppingToken);
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -61,23 +98,22 @@ public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<Egres
     public override void Dispose()
     {
         _listener?.Dispose();
+        _slots?.Dispose();
         base.Dispose();
     }
 
-    private async Task ServeAsync(TcpClient client, CancellationToken cancellationToken)
+    private async Task ServeAsync(TcpClient client, SemaphoreSlim slots, CancellationToken cancellationToken)
     {
         using (client)
         {
             try
             {
                 NetworkStream stream = client.GetStream();
-                using var heading = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                heading.CancelAfter(HeadTimeout);
 
-                if (await HeadAsync(stream, heading.Token) is not { } head)
+                if (await HeadAsync(stream, cancellationToken) is not { } head)
                     return;
 
-                if (Request.Of(head) is not { } request)
+                if (Request.Of(head.Bytes) is not { } request)
                 {
                     await RefuseAsync(stream, "400 Bad Request", cancellationToken);
                     return;
@@ -96,42 +132,124 @@ public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<Egres
             {
                 Log.ProxyConnectionEnded(logger, exception);
             }
+            finally
+            {
+                slots.Release();
+            }
         }
     }
 
-    /// <summary>Joins the connection to the host it asked for, both ways, until either side ends.</summary>
-    /// <remarks>
-    /// Once one direction ends, the other is cancelled and awaited before the upstream socket is disposed: it used to be
-    /// left copying on a socket already disposed, its exception unobserved (CA2025).
-    /// </remarks>
-    private static async Task ForwardAsync(NetworkStream stream, Request request, byte[] head, CancellationToken cancellationToken)
+    private static async Task RefuseBusyAsync(TcpClient client, CancellationToken cancellationToken)
+    {
+        using (client)
+        {
+            try
+            {
+                await RefuseAsync(client.GetStream(), "503 Service Unavailable", cancellationToken);
+            }
+            catch (Exception exception) when (exception is IOException or SocketException or OperationCanceledException)
+            {
+                return;
+            }
+        }
+    }
+
+    private async Task<Head?> HeadAsync(NetworkStream stream, CancellationToken cancellationToken)
+    {
+        using var reading = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        reading.CancelAfter(HeadTimeout);
+
+        var buffer = new byte[MaxHeadBytes];
+        int filled = 0;
+
+        while (filled < buffer.Length)
+        {
+            int got = await stream.ReadAsync(buffer.AsMemory(filled), reading.Token);
+            if (got == 0)
+                return null;
+
+            filled += got;
+
+            if (Split(buffer.AsSpan(0, filled)) is { } head)
+                return head;
+        }
+
+        return null;
+    }
+
+    /// <summary>Joins the connection to the host it asked for, both ways, until either side ends or both go quiet.</summary>
+    private async Task ForwardAsync(NetworkStream stream, Request request, Head head, CancellationToken cancellationToken)
     {
         using var upstream = new TcpClient();
-        await upstream.ConnectAsync(request.Host, request.Port, cancellationToken);
+
+        using (var connecting = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+        {
+            connecting.CancelAfter(ConnectTimeout);
+            await upstream.ConnectAsync(request.Host, request.Port, connecting.Token);
+        }
+
         NetworkStream far = upstream.GetStream();
 
         if (request.IsTunnel)
             await stream.WriteAsync("HTTP/1.1 200 Connection established\r\n\r\n"u8.ToArray(), cancellationToken);
         else
-            await far.WriteAsync(request.Forwarded(head), cancellationToken);
+            await far.WriteAsync(request.Forwarded(head.Bytes), cancellationToken);
 
-        using var both = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        Task outbound = stream.CopyToAsync(far, both.Token);
-        Task inbound = far.CopyToAsync(stream, both.Token);
+        if (head.Rest.Length > 0)
+            await far.WriteAsync(head.Rest, cancellationToken);
 
-        await Task.WhenAny(outbound, inbound);
-        await both.CancelAsync();
+        await PumpAsync(stream, far, cancellationToken);
+    }
+
+    /// <summary>Copies both ways until either side ends or nothing passes for the idle span.</summary>
+    /// <remarks>
+    /// Once one direction ends, the others are cancelled and awaited before the upstream socket is disposed: a copy left
+    /// running on a disposed socket threw unobserved (CA2025).
+    /// </remarks>
+    private async Task PumpAsync(NetworkStream near, NetworkStream far, CancellationToken cancellationToken)
+    {
+        using var open = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var traffic = new Traffic();
+
+        Task outbound = CopyAsync(near, far, traffic, open.Token);
+        Task inbound = CopyAsync(far, near, traffic, open.Token);
+        Task quiet = QuietAsync(traffic, open.Token);
+
+        await Task.WhenAny(outbound, inbound, quiet);
+        await open.CancelAsync();
 
         await EndedAsync(outbound);
         await EndedAsync(inbound);
+        await EndedAsync(quiet);
     }
 
-    /// <summary>Waits for a copy that was told to stop; how it stopped is the connection's end, not a failure.</summary>
-    private static async Task EndedAsync(Task copy)
+    private static async Task CopyAsync(NetworkStream from, NetworkStream to, Traffic traffic, CancellationToken cancellationToken)
+    {
+        var buffer = new byte[CopyBytes];
+        int got;
+
+        while ((got = await from.ReadAsync(buffer, cancellationToken)) > 0)
+        {
+            await to.WriteAsync(buffer.AsMemory(0, got), cancellationToken);
+            traffic.Passed();
+        }
+    }
+
+    /// <summary>Ends once nothing has passed for the idle span.</summary>
+    private async Task QuietAsync(Traffic traffic, CancellationToken cancellationToken)
+    {
+        var look = TimeSpan.FromTicks(Math.Max(IdleTimeout.Ticks / 4, TimeSpan.TicksPerMillisecond));
+
+        while (traffic.QuietFor < IdleTimeout)
+            await Task.Delay(look, cancellationToken);
+    }
+
+    /// <summary>Waits for a task that was told to stop; how it stopped is the connection's end, not a failure.</summary>
+    private static async Task EndedAsync(Task stopped)
     {
         try
         {
-            await copy;
+            await stopped;
         }
         catch (Exception exception) when (exception is IOException or SocketException or OperationCanceledException or ObjectDisposedException)
         {
@@ -139,26 +257,21 @@ public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<Egres
         }
     }
 
-    private static async Task<byte[]?> HeadAsync(NetworkStream stream, CancellationToken cancellationToken)
-    {
-        List<byte> read = [];
-        var one = new byte[1];
-
-        while (read.Count < MaxHeadBytes)
-        {
-            if (await stream.ReadAsync(one, cancellationToken) == 0)
-                return null;
-
-            read.Add(one[0]);
-            if (read.Count >= 4 && read[^4] == '\r' && read[^3] == '\n' && read[^2] == '\r' && read[^1] == '\n')
-                return [.. read];
-        }
-
-        return null;
-    }
-
     private static Task RefuseAsync(NetworkStream stream, string status, CancellationToken cancellationToken) =>
         stream.WriteAsync(Encoding.ASCII.GetBytes($"HTTP/1.1 {status}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"), cancellationToken).AsTask();
+
+    /// <summary>A request's head as read, and the bytes that came after it in the same reads.</summary>
+    internal sealed record Head(byte[] Bytes, byte[] Rest);
+
+    /// <summary>When anything last passed through a connection, either way.</summary>
+    private sealed class Traffic
+    {
+        private long _last = Environment.TickCount64;
+
+        public TimeSpan QuietFor => TimeSpan.FromMilliseconds(Environment.TickCount64 - Interlocked.Read(ref _last));
+
+        public void Passed() => Interlocked.Exchange(ref _last, Environment.TickCount64);
+    }
 
     /// <summary>One request as the proxy reads it: where it goes, and whether it is a tunnel.</summary>
     internal sealed record Request(string Host, int Port, bool IsTunnel, string Target)

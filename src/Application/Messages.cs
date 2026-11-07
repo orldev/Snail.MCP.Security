@@ -75,4 +75,8 @@ public static class Messages
 
     /// <summary>What makes one.</summary>
     public const string SiteNotScannedHint = "Call security_site_scan first.";
+
+    /// <summary>An ownership key file that is not a key: refused rather than used, since a new one would change every domain's code.</summary>
+    public static string ProofKeyBroken(string file, int length, int expected) =>
+        $"The ownership key {file} holds {length} bytes instead of {expected}. Restore it from a backup; deleting it makes a new key and every domain has to publish its code again.";
 }

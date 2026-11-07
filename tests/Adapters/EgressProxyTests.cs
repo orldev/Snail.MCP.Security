@@ -78,6 +78,69 @@ public sealed class EgressProxyTests
         Assert.StartsWith(status, answer, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Split_HeadWithABodyAfterIt_KeepsTheBodyToForward()
+    {
+        var head = EgressProxy.Split("POST http://api.nuget.org/x HTTP/1.1\r\nContent-Length: 2\r\n\r\nhi"u8);
+
+        Assert.EndsWith("\r\n\r\n", Encoding.ASCII.GetString(head!.Bytes), StringComparison.Ordinal);
+        Assert.Equal("hi", Encoding.ASCII.GetString(head.Rest));
+    }
+
+    [Fact]
+    public void Split_HeadNotEndedYet_IsNull()
+    {
+        Assert.Null(EgressProxy.Split("CONNECT api.nuget.org:443 HTTP/1.1\r\nHost: x\r\n"u8));
+    }
+
+    /// <summary>A client that connected and sent nothing used to hold its socket until the head's limit, and any number of them at once.</summary>
+    [Fact]
+    public async Task Connection_ThatSendsNoHead_IsClosedOnceTheHeadTimeoutPasses()
+    {
+        using var proxy = Limited(maxConnections: 4);
+        await proxy.StartAsync(CancellationToken.None);
+        using var client = await ConnectAsync(proxy);
+
+        int got = await client.GetStream().ReadAsync(new byte[16]).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        await proxy.StopAsync(CancellationToken.None);
+
+        Assert.Equal(0, got);
+    }
+
+    [Fact]
+    public async Task Connection_OnePastTheLimit_IsAnswered503()
+    {
+        using var proxy = Limited(maxConnections: 1);
+        await proxy.StartAsync(CancellationToken.None);
+        using var holding = await ConnectAsync(proxy);
+        await Task.Delay(100);
+        using var extra = await ConnectAsync(proxy);
+
+        var buffer = new byte[256];
+        int got = await extra.GetStream().ReadAsync(buffer).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        await proxy.StopAsync(CancellationToken.None);
+
+        Assert.StartsWith("HTTP/1.1 503", Encoding.ASCII.GetString(buffer, 0, got), StringComparison.Ordinal);
+    }
+
+    private static EgressProxy Limited(int maxConnections) =>
+        new(Options.Create(new SecurityOptions { ProxyPort = FreePort(), ProxyHosts = Hosts }), NullLogger<EgressProxy>.Instance)
+        {
+            MaxConnections = maxConnections,
+            HeadTimeout = TimeSpan.FromMilliseconds(300)
+        };
+
+    private static async Task<TcpClient> ConnectAsync(EgressProxy proxy)
+    {
+        while (proxy.Port == 0)
+            await Task.Delay(10);
+
+        var client = new TcpClient();
+        await client.ConnectAsync(IPAddress.Loopback, proxy.Port);
+
+        return client;
+    }
+
     private static async Task<string> AskAsync(EgressProxy proxy, string head, CancellationToken cancellationToken)
     {
         while (proxy.Port == 0)

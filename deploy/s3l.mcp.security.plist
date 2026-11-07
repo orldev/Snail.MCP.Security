@@ -12,8 +12,7 @@
     <string>s3l.mcp.security</string>
     <key>ProgramArguments</key>
     <array>
-        <string>{{DOTNET}}</string>
-        <string>{{CURRENT}}/Snail.MCP.Security.dll</string>
+        <string>{{CURRENT}}/Snail.MCP.Security</string>
     </array>
     <key>WorkingDirectory</key>
     <string>{{HOME}}</string>
