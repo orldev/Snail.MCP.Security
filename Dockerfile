@@ -12,9 +12,9 @@
 #   docker build -t s3l-security-mcp:local --build-arg VERSION=0.0.0-local.$(git rev-parse --short HEAD) .
 #
 # The server listens on every interface at the port of SNAIL_MCP_SECURITY_URL (8829) for the platform's workers
-# (McpHttpHost.CreateContainerBuilder: a browser's request is still refused), and its egress proxy at 3128 for the
-# scanners it runs. The SDK is pinned to the band global.json asks for: on the floating sdk:10.0 a newer feature
-# band would one day refuse the build.
+# (McpEndpoint, which DOTNET_RUNNING_IN_CONTAINER opens on every interface: a browser's request is still refused), and
+# its egress proxy at 3128 for the scanners it runs. The SDK is pinned to the band global.json asks for: on the floating
+# sdk:10.0 a newer feature band would one day refuse the build.
 #
 # The server is native: the SDK compiles it ahead of time (Native AOT), which needs clang and zlib in the build stage,
 # and the image runs the one executable on runtime-deps, with no .NET runtime in it. It is compiled for the platform

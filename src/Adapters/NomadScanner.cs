@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Snail.MCP.Security.Application;
 using Snail.MCP.Security.Application.Ports;
 using Snail.MCP.Security.Configuration;
+using Snail.Sdk.Mcp.Hosting.Sessions;
 using Snail.Toolkit.Nomad;
 using Snail.Toolkit.Nomad.Models;
 
@@ -27,7 +28,7 @@ public sealed class NomadScanner(INomadClient nomad, IFixes fixes, IOptions<Secu
     private readonly SemaphoreSlim _gate = new(1, 1);
 
     /// <inheritdoc />
-    public async Task<ScanOutcome> ScanAsync(CopyPlace copy, IReadOnlyCollection<Check> checks, CancellationToken cancellationToken)
+    public async Task<ScanOutcome> ScanAsync(WorkspacePlace<string> copy, IReadOnlyCollection<Check> checks, CancellationToken cancellationToken)
     {
         await _gate.WaitAsync(cancellationToken);
         try
@@ -49,7 +50,7 @@ public sealed class NomadScanner(INomadClient nomad, IFixes fixes, IOptions<Secu
         }
         catch (Exception exception) when (exception is HttpRequestException or NomadException or TaskCanceledException)
         {
-            return Answer.Failed<string>(Messages.SchedulerDown(options.Value.NomadAddress, exception.Message), Messages.SchedulerDownHint);
+            return Answer.Failed(Messages.SchedulerDown(options.Value.NomadAddress, exception.Message), Messages.SchedulerDownHint, FailureTypes.Unreachable);
         }
     }
 
@@ -62,31 +63,32 @@ public sealed class NomadScanner(INomadClient nomad, IFixes fixes, IOptions<Secu
     /// Nomad refusing the job escaped as an exception, which a client sees as a bare "an error occurred". Now a cancelled
     /// scan stops its job before it ends, and a scheduler failure is every check not run, with Nomad's own words.
     /// </remarks>
-    private async Task<ScanOutcome> RunAsync(CopyPlace copy, IReadOnlyCollection<Check> checks, CancellationToken cancellationToken)
+    private async Task<ScanOutcome> RunAsync(WorkspacePlace<string> copy, IReadOnlyCollection<Check> checks, CancellationToken cancellationToken)
     {
         string run = Guid.NewGuid().ToString("N");
+        string job = ScanJob.Of(copy.Task);
 
         try
         {
-            await nomad.StopJobAsync(copy.Job, purge: true, cancellationToken);
+            await nomad.StopJobAsync(job, purge: true, cancellationToken);
             await nomad.RegisterJobAsync(ScannerJob.Of(copy, checks, run, options.Value), cancellationToken);
 
-            var allocation = await EndedAsync(copy.Job, cancellationToken);
+            var allocation = await EndedAsync(job, cancellationToken);
             if (allocation is not null)
                 return await ReadAsync(copy, checks, run, allocation, cancellationToken);
 
-            await StopAsync(copy.Job);
+            await StopAsync(job);
 
             return NotRun(checks, $"the scan did not finish in {options.Value.ScanSeconds} s");
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            await StopAsync(copy.Job);
+            await StopAsync(job);
             throw;
         }
         catch (Exception exception) when (exception is HttpRequestException or NomadException or TaskCanceledException)
         {
-            await StopAsync(copy.Job);
+            await StopAsync(job);
 
             return NotRun(checks, Messages.SchedulerFailed(options.Value.NomadAddress, exception.Message));
         }
@@ -106,11 +108,11 @@ public sealed class NomadScanner(INomadClient nomad, IFixes fixes, IOptions<Secu
     }
 
     private static ScanOutcome NotRun(IReadOnlyCollection<Check> checks, string reason) =>
-        new([], [.. checks.Select(check => new CheckRun(check, false, Messages.CheckFailed(Scans.Word(check), reason)))]);
+        new([], [.. checks.Select(check => new CheckRun(check, false, Messages.CheckFailed(ToolAnswer.Word(check), reason)))]);
 
     /// <summary>What the scanners left in the cache, each check run or not with the scanner's own words.</summary>
     /// <remarks>A stage that failed started no scanner at all, so its words are the reason of every check.</remarks>
-    private async Task<ScanOutcome> ReadAsync(CopyPlace copy, IReadOnlyCollection<Check> checks, string run, Allocation allocation, CancellationToken cancellationToken)
+    private async Task<ScanOutcome> ReadAsync(WorkspacePlace<string> copy, IReadOnlyCollection<Check> checks, string run, Allocation allocation, CancellationToken cancellationToken)
     {
         if (allocation.TaskStates?.GetValueOrDefault(ScannerJob.Stage)?.Failed == true)
         {
@@ -134,7 +136,7 @@ public sealed class NomadScanner(INomadClient nomad, IFixes fixes, IOptions<Secu
             {
                 string said = (await LogsAsync(allocation.Id, task, LogType.Stderr, ReasonBytes, cancellationToken)).Trim();
                 string reason = said.Length > 0 ? said : "it printed no report";
-                runs.AddRange(covered.Select(check => new CheckRun(check, false, Messages.CheckFailed(Scans.Word(check), reason))));
+                runs.AddRange(covered.Select(check => new CheckRun(check, false, Messages.CheckFailed(ToolAnswer.Word(check), reason))));
                 continue;
             }
 
@@ -142,7 +144,7 @@ public sealed class NomadScanner(INomadClient nomad, IFixes fixes, IOptions<Secu
 
             IReadOnlyList<string> unread = task == ScannerJob.Dotnet ? ScannerReports.DotnetFailures(report) : [];
             if (unread.Count > 0)
-                runs.AddRange(covered.Select(check => new CheckRun(check, false, Messages.CheckFailed(Scans.Word(check), unread[0]))));
+                runs.AddRange(covered.Select(check => new CheckRun(check, false, Messages.CheckFailed(ToolAnswer.Word(check), unread[0]))));
         }
 
         var failed = runs.Select(run => run.Check).ToHashSet();

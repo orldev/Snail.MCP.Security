@@ -2,6 +2,7 @@ using System.ComponentModel;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using Snail.MCP.Security.Application;
+using Snail.Sdk.Mcp.Hosting.Jobs;
 
 namespace Snail.MCP.Security.Tools;
 
@@ -24,13 +25,13 @@ public sealed class SecurityTools(Scans scans, ScanJobs running)
         CancellationToken cancellationToken = default)
     {
         var request = scans.Plan(checks);
-        if (request.Value is not { } wanted)
-            return ToolResponse.Failure(request.Error!, request.Hint);
+        if (!request.TryGet(out var planned))
+            return ToolAnswer.Failed(request);
 
-        var job = running.Start(wanted);
+        var job = running.Start(planned);
         var report = await job.ForAsync(TimeSpan.FromSeconds(wait), cancellationToken);
 
-        return ToolResponse.Job(report);
+        return JobAnswer.Envelope(report);
     }
 
     /// <summary>Reads a page of the last scan's findings.</summary>
@@ -42,5 +43,5 @@ public sealed class SecurityTools(Scans scans, ScanJobs running)
         [Description(ToolDescriptions.FindingsOffset)] int offset = 0,
         [Description(ToolDescriptions.FindingsLimit)] int? limit = null,
         CancellationToken cancellationToken = default) =>
-        ToolResponse.From(await scans.FindingsAsync(severity, check, offset, limit, cancellationToken));
+        ToolAnswer.From(await scans.FindingsAsync(severity, check, offset, limit, cancellationToken), AnswerFields.Of);
 }

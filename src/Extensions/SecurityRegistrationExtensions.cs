@@ -15,9 +15,7 @@ public static class SecurityRegistrationExtensions
         public IServiceCollection AddScans()
         {
             services.AddSingleton(TimeProvider.System);
-            services.AddHttpContextAccessor();
             services.AddSingleton<SessionCopy>();
-            services.AddSingleton<SessionGrant>();
             services.AddSingleton<IScanner, NomadScanner>();
             services.AddSingleton<IScanHistory>(_ => FileScanHistory.InDataFolder());
             services.AddSingleton<IFixes, NuGetFixes>();

@@ -13,7 +13,32 @@
         "url": "http://127.0.0.1:8829/mcp"
       },
       "packageArguments": [],
-      "environmentVariables": []
+      "environmentVariables": [
+        {
+          "name": "SNAIL_MCP_SECURITY_NOMAD_ADDRESS",
+          "description": "Nomad's HTTP address, which every scan runs through. Default: http://nomad:4646.",
+          "isRequired": false,
+          "default": "http://nomad:4646"
+        },
+        {
+          "name": "SNAIL_MCP_SECURITY_WORKSPACES_ROOT",
+          "description": "Folder the platform's working copies lie under, as this server sees them, read-only. Default: /workspaces.",
+          "isRequired": false,
+          "default": "/workspaces"
+        },
+        {
+          "name": "SNAIL_MCP_SECURITY_PROXY_PORT",
+          "description": "Port the egress proxy for the scanners listens on inside the server; 0 keeps it off.",
+          "isRequired": false,
+          "default": "0"
+        },
+        {
+          "name": "SNAIL_MCP_SECURITY_URL",
+          "description": "Where the server answers. Default: http://127.0.0.1:8829/; inside a container the port is opened on every interface.",
+          "isRequired": false,
+          "default": "http://127.0.0.1:8829/"
+        }
+      ]
     }
   ],
   "repository": {

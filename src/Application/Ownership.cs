@@ -35,12 +35,12 @@ public sealed class Ownership(ISiteDns dns, IProofKey key)
         {
             var texts = await dns.TextsAsync(Site.RecordOf(domain), cancellationToken);
             if (texts is null)
-                return Answer.Failed<string>(Messages.DnsUnanswered(Site.RecordOf(domain)));
+                return Answer.Failed(Messages.DnsUnanswered(Site.RecordOf(domain)), type: FailureTypes.Unreachable);
 
             if (texts.Contains(CodeOf(domain), StringComparer.Ordinal))
                 return Answer.Ok(domain);
         }
 
-        return Answer.Failed<string>(Messages.NotProven(site.Host), Messages.ProveHint(Site.RecordOf(site.Host), CodeOf(site.Host)));
+        return Answer.Failed(Messages.NotProven(site.Host), Messages.ProveHint(Site.RecordOf(site.Host), CodeOf(site.Host)), FailureTypes.NotProven);
     }
 }

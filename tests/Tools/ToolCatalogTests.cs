@@ -30,14 +30,14 @@ public sealed partial class ToolCatalogTests
     public void Checks_EveryCheckOfTheCopy_IsNamed()
     {
         foreach (var check in Checks.Copy)
-            Assert.Contains(ToolResponse.Word(check), Words(ToolDescriptions.Checks));
+            Assert.Contains(ToolAnswer.Word(check), Words(ToolDescriptions.Checks));
     }
 
     [Fact]
     public void Severities_EverySeverity_IsNamed()
     {
         foreach (var severity in Enum.GetValues<Severity>())
-            Assert.Contains(ToolResponse.Word(severity), Words(ToolDescriptions.Severities));
+            Assert.Contains(ToolAnswer.Word(severity), Words(ToolDescriptions.Severities));
     }
 
     /// <summary>Every number a description names is the default it describes.</summary>

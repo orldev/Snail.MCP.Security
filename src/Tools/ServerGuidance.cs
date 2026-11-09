@@ -16,6 +16,10 @@ public static class ServerGuidance
         secret out of the files and say it has to be rotated, since it was exposed; change the setting or the code the
         finding points at. Read the rest with security_findings.
 
-        Every answer is JSON with an ok flag. When ok is false nothing happened: read error and hint.
+        Every answer is JSON with an ok flag, and a failed call is also flagged isError. When ok is false, read error and
+        hint and fix the call instead of retrying it verbatim; type names the failure: arguments a check or severity
+        that does not exist, notScanned no scan of the task yet, unreachable Nomad not answering, noRoot or outside a
+        session with no task's copy. A scan that failed or was cancelled answers ok false too, with its job's report:
+        the scan did start, so read why it ended before scanning again.
         """;
 }

@@ -1,7 +1,11 @@
+using Microsoft.Extensions.Options;
 using Snail.MCP.Security.Application;
 using Snail.MCP.Security.Configuration;
 using Snail.MCP.Security.Tools;
+using Snail.Sdk.Mcp.Hosting;
+using Snail.Sdk.Mcp.Hosting.Discovery;
 using Snail.Sdk.Mcp.Hosting.Jobs;
+using Snail.Sdk.Mcp.Hosting.Sessions;
 using Snail.Sdk.Mcp.Http;
 
 namespace Snail.MCP.Security.Extensions;
@@ -14,17 +18,14 @@ public static class SecurityServerExtensions
         /// <summary>The host of the server: the port of its URL on every interface inside a container, the loopback URL itself on a machine.</summary>
         /// <remarks>
         /// Snail.Sdk.Mcp.Http's host either way — stderr, the idle trim, and with <c>MapLocalMcp</c> the refusal of a browser's
-        /// request. The server built a host of its own before and lost that refusal: a request with <c>Origin</c> was answered
-        /// 200, as Snail.MCP.Documents' was on 2026-10-16. A container's published port does not reach its loopback, so there
-        /// the port is opened on every interface and the published port is the boundary.
+        /// request — at the endpoint its settings name (<see cref="McpEndpoint"/>): HTTP alone, since the server never runs
+        /// as a child process, at <c>Url</c> (<c>SNAIL_MCP_SECURITY_URL</c>) or a <c>Port</c>. A container's published port
+        /// does not reach its loopback, so there the port is opened on every interface and the published port is the boundary
+        /// (<see cref="McpReach.LoopbackOrContainer"/>); on a machine anything beyond loopback is refused at start, naming the
+        /// variable that asked for it, since the findings it answers name a copy's secrets and weak spots.
         /// </remarks>
-        public static WebApplicationBuilder CreateSecurityBuilder(string[] args)
-        {
-            Uri url = SecuritySettings.Url;
-            bool isInContainer = string.Equals(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), "true", StringComparison.OrdinalIgnoreCase);
-
-            return isInContainer ? McpHttpHost.CreateContainerBuilder(args, url.Port) : McpHttpHost.CreateBuilder(args, url);
-        }
+        public static WebApplicationBuilder CreateSecurityBuilder(string[] args) =>
+            McpHttpHost.CreateBuilder(args, McpEndpoint.ReadHttp(SecuritySettings.Read(), SecuritySettings.DefaultUrl, new McpEndpointOptions { Reach = McpReach.LoopbackOrContainer, Server = SecuritySettings.Name }));
     }
 
     extension(WebApplicationBuilder builder)
@@ -33,7 +34,10 @@ public static class SecurityServerExtensions
         /// <remarks>
         /// A session for every client (<c>WithLocalHttpTransport</c>): the MCP SDK's HTTP transport is stateless by default,
         /// and a stateless server has no stream to tell a subscriber of a job's end — the job client's wait for a scan never
-        /// ended, not even on its own cancellation.
+        /// ended, not even on its own cancellation. The tools a session's address grants (<c>?tool=</c>) are held at the door
+        /// (<c>WithSessionGrant</c>): a tool it was not granted is left out of its list, and a call to it is refused in
+        /// the answer envelope. A call that leaves out a required parameter or names one a tool does not take is refused
+        /// before the tool runs (<c>WithArgumentCheck</c>): <c>check</c> for <c>checks</c> no longer scans everything.
         /// </remarks>
         public WebApplicationBuilder ConfigureSecurityServer()
         {
@@ -48,14 +52,16 @@ public static class SecurityServerExtensions
             builder.Services
                 .AddMcpServer(options =>
                 {
-                    options.ServerInfo = Snail.Sdk.Mcp.Hosting.ServerIdentity.Of(typeof(SecurityServerExtensions).Assembly);
+                    options.ServerInfo = ServerIdentity.Of(typeof(SecurityServerExtensions).Assembly);
                     options.ServerInstructions = ServerGuidance.Instructions;
                 })
-                .RefuseWhatWasNotGranted()
+                .ExplainFailures()
                 .WithLocalHttpTransport()
+                .WithSessionGrant()
+                .WithArgumentCheck()
                 .WithTools<SecurityTools>()
                 .WithTools<DiagnosticsTools>()
-                .WithJobs(SecuritySettings.Name, JobOwner);
+                .WithJobs(SecuritySettings.Name, JobOwners.TaskOfCopy(WorkspacesOf, SessionCopy.IsTaskId));
 
             return builder;
         }
@@ -67,21 +73,17 @@ public static class SecurityServerExtensions
         public WebApplication UseSecurityEndpoints()
         {
             app.MapLocalMcp();
-            app.MapGet("/healthz", () => Results.Ok());
+            app.MapHealth();
 
             return app;
         }
     }
 
-    /// <summary>Whose jobs a request may read and watch: the task of the copy its address names, or nobody's.</summary>
+    /// <summary>The folder every task's copies lie under, which names whose jobs a request may read and watch.</summary>
     /// <remarks>
     /// Every step of a task opens the server with its own copy under the task's folder, so the steps of one task share
-    /// their scans and no other task reaches them. A request that names no copy owns nothing and sees no scan.
+    /// their scans and no other task reaches them; a request that names no copy owns nothing and sees no scan. A scan is
+    /// started with the task as its owner (<see cref="ScanJobs"/>), the owner <see cref="JobOwners.TaskOfCopy"/> reads.
     /// </remarks>
-    private static string? JobOwner(IServiceProvider services)
-    {
-        var copy = services.GetService<SessionCopy>()?.Current();
-
-        return copy?.Value?.Task;
-    }
+    private static string WorkspacesOf(IServiceProvider services) => services.GetRequiredService<IOptions<SecurityOptions>>().Value.WorkspacesRoot;
 }

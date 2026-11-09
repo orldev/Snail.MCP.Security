@@ -1,11 +1,10 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using ModelContextProtocol.Protocol;
 using Snail.MCP.Security.Application;
 using Snail.MCP.Security.Configuration;
 using Snail.MCP.Security.Tests.Application;
 using Snail.MCP.Security.Tools;
 using Snail.Sdk.Mcp.Hosting.Jobs;
+using Snail.Sdk.Mcp.Testing;
 
 namespace Snail.MCP.Security.Tests.Tools;
 
@@ -14,24 +13,20 @@ public sealed class SecurityToolsTests
 {
     private static SecurityTools Of(FakeScanner scanner, Jobs? jobs = null, string? root = "/workspaces/0c2b9e1f/step-2")
     {
-        var context = new DefaultHttpContext();
-        if (root is not null)
-            context.Request.QueryString = QueryString.Create(SessionCopy.Parameter, root);
-
+        var address = root is null ? new FixedAddress() : new FixedAddress((SessionCopy.Parameter, root));
         var options = Options.Create(new SecurityOptions());
-        var scans = new Scans(new SessionCopy(new HttpContextAccessor { HttpContext = context }, options), scanner, new MemoryHistory(), options, TimeProvider.System);
+        var scans = new Scans(new SessionCopy(address, options), scanner, new MemoryHistory(), options, TimeProvider.System);
 
         return new SecurityTools(scans, new ScanJobs(jobs ?? new Jobs(SecuritySettings.Name), scans, options));
     }
-
-    private static JobReport ReportOf(CallToolResult answer) => JobReport.FromJson(answer.StructuredContent!.Value.GetRawText())!;
 
     [Fact]
     public async Task ScanAsync_ScanEndsWithinTheWait_AnswersWithTheScanAsTheJobsResult()
     {
         var answer = await Of(new FakeScanner()).ScanAsync(wait: 30);
 
-        var report = ReportOf(answer);
+        var report = answer.Report()!;
+        Assert.True(answer.IsOk(), answer.Text());
         Assert.Equal(JobState.Succeeded, report.State);
         Assert.True(report.Result!.Value.GetProperty("clean").GetBoolean());
     }
@@ -46,8 +41,8 @@ public sealed class SecurityToolsTests
 
         var answer = await tools.ScanAsync(wait: 0);
 
-        var running = ReportOf(answer);
-        Assert.NotEqual(true, answer.IsError);
+        var running = answer.Report()!;
+        Assert.True(answer.IsOk());
         Assert.Equal(JobState.Running, running.State);
         Assert.StartsWith("job://security/scan/", running.Uri, StringComparison.Ordinal);
 
@@ -64,7 +59,7 @@ public sealed class SecurityToolsTests
     {
         var jobs = new Jobs(SecuritySettings.Name);
 
-        var running = ReportOf(await Of(new FakeScanner(), jobs).ScanAsync(wait: 0));
+        var running = (await Of(new FakeScanner(), jobs).ScanAsync(wait: 0)).Report()!;
 
         Assert.Equal("0c2b9e1f", jobs.Find(running.Uri)!.Owner);
         Assert.NotNull(jobs.Find(running.Uri, "0c2b9e1f"));
@@ -80,8 +75,8 @@ public sealed class SecurityToolsTests
         var scanner = new FakeScanner { Held = held.Task };
         var tools = Of(scanner);
 
-        var first = ReportOf(await tools.ScanAsync(wait: 0));
-        var second = ReportOf(await tools.ScanAsync(wait: 0));
+        var first = (await tools.ScanAsync(wait: 0)).Report()!;
+        var second = (await tools.ScanAsync(wait: 0)).Report()!;
         held.SetResult();
 
         Assert.Equal(first.Uri, second.Uri);
@@ -96,6 +91,7 @@ public sealed class SecurityToolsTests
         var answer = await Of(scanner, root: null).ScanAsync();
 
         Assert.True(answer.IsError);
+        Assert.Equal(Messages.NoCopy, answer.Error());
         Assert.Empty(scanner.Asked);
     }
 }

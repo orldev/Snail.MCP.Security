@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Options;
 using Snail.MCP.Security.Application.Ports;
 using Snail.MCP.Security.Configuration;
+using Snail.Sdk.Mcp.Hosting;
+using Snail.Sdk.Mcp.Hosting.Sessions;
 
 namespace Snail.MCP.Security.Application;
 
@@ -8,19 +10,19 @@ namespace Snail.MCP.Security.Application;
 public sealed class Scans(SessionCopy session, IScanner scanner, IScanHistory history, IOptions<SecurityOptions> options, TimeProvider clock)
 {
     /// <summary>The checks a caller may name, as the tools spell them.</summary>
-    public static readonly IReadOnlyDictionary<string, Check> Words = Checks.Copy.ToDictionary(Word, check => check, StringComparer.OrdinalIgnoreCase);
+    public static readonly IReadOnlyDictionary<string, Check> Words = Checks.Copy.ToDictionary(check => ToolAnswer.Word(check), check => check, StringComparer.OrdinalIgnoreCase);
 
     /// <summary>The scan this session asks for: its copy, and the checks named, every one when none is.</summary>
     /// <remarks>Read while the request is still the session's: the scan itself runs as a job, after the call that started it may have ended.</remarks>
     public Answer<ScanRequest> Plan(IReadOnlyList<string>? checks)
     {
         var place = session.Current();
-        if (place.Value is not { } copy)
-            return Answer.Failed<ScanRequest>(place.Error!, place.Hint);
+        if (!place.TryGet(out var copy))
+            return place.As<ScanRequest>();
 
         var unknown = (checks ?? []).Where(word => !Words.ContainsKey(word)).ToList();
         if (unknown.Count > 0)
-            return Answer.Failed<ScanRequest>(Messages.UnknownChecks(unknown, Words.Keys));
+            return Answer.Failed(Messages.UnknownChecks(unknown, Words.Keys), type: ToolFailures.Arguments);
 
         IReadOnlyCollection<Check> wanted = checks is { Count: > 0 } ? [.. checks.Select(word => Words[word]).Distinct()] : Checks.Copy;
 
@@ -44,14 +46,14 @@ public sealed class Scans(SessionCopy session, IScanner scanner, IScanHistory hi
     public async Task<Answer<FindingPage>> FindingsAsync(string? severity, string? check, int offset, int? limit, CancellationToken cancellationToken)
     {
         var place = session.Current();
-        if (place.Value is not { } copy)
-            return Answer.Failed<FindingPage>(place.Error!, place.Hint);
+        if (!place.TryGet(out var copy))
+            return place.As<FindingPage>();
 
         Severity? floor = null;
         if (severity is { Length: > 0 })
         {
             if (!Enum.TryParse<Severity>(severity, ignoreCase: true, out var parsed))
-                return Answer.Failed<FindingPage>(Messages.UnknownSeverity(severity));
+                return Answer.Failed(Messages.UnknownSeverity(severity), type: ToolFailures.Arguments);
 
             floor = parsed;
         }
@@ -60,13 +62,13 @@ public sealed class Scans(SessionCopy session, IScanner scanner, IScanHistory hi
         if (check is { Length: > 0 })
         {
             if (!Words.TryGetValue(check, out var named))
-                return Answer.Failed<FindingPage>(Messages.UnknownChecks([check], Words.Keys));
+                return Answer.Failed(Messages.UnknownChecks([check], Words.Keys), type: ToolFailures.Arguments);
 
             only = named;
         }
 
         if (await history.LastAsync(copy.Task, cancellationToken) is not { } report)
-            return Answer.Failed<FindingPage>(Messages.NotScanned, Messages.NotScannedHint);
+            return Answer.Failed(Messages.NotScanned, Messages.NotScannedHint, FailureTypes.NotScanned);
 
         var matching = report.Ordered.Where(finding => (floor is null || finding.Severity <= floor) && (only is null || finding.Check == only)).ToList();
         int size = Math.Clamp(limit ?? options.Value.ShownFindings, 1, options.Value.MaxPage);
@@ -74,10 +76,7 @@ public sealed class Scans(SessionCopy session, IScanner scanner, IScanHistory hi
 
         return Answer.Ok(new FindingPage(matching.Count, start, [.. matching.Skip(start).Take(size)], report.At));
     }
-
-    /// <summary>A check as the tools spell it.</summary>
-    public static string Word(Check check) => check.ToString().ToLowerInvariant();
 }
 
 /// <summary>A scan asked for: the copy and the checks to run on it.</summary>
-public sealed record ScanRequest(CopyPlace Copy, IReadOnlyCollection<Check> Checks);
+public sealed record ScanRequest(WorkspacePlace<string> Copy, IReadOnlyCollection<Check> Checks);

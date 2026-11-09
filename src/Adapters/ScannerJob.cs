@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Snail.MCP.Security.Application;
 using Snail.MCP.Security.Configuration;
+using Snail.Sdk.Mcp.Hosting.Sessions;
 
 namespace Snail.MCP.Security.Adapters;
 
@@ -88,13 +89,13 @@ public static class ScannerJob
         """;
 
     /// <summary>The folder a run's reports are written to, the same inside a scanner and inside the server.</summary>
-    public static string ReportsOf(CopyPlace copy, string run) => $"{RunsOf(copy)}/{run}";
+    public static string ReportsOf(WorkspacePlace<string> copy, string run) => $"{RunsOf(copy)}/{run}";
 
     /// <summary>The folder every run of a task writes under.</summary>
-    public static string RunsOf(CopyPlace copy) => $"{CacheFolder}/reports/{copy.Task}";
+    public static string RunsOf(WorkspacePlace<string> copy) => $"{CacheFolder}/reports/{copy.Task}";
 
     /// <summary>The report file a scanner writes.</summary>
-    public static string ReportOf(CopyPlace copy, string run, string task) => $"{ReportsOf(copy, run)}/{task}.json";
+    public static string ReportOf(WorkspacePlace<string> copy, string run, string task) => $"{ReportsOf(copy, run)}/{task}.json";
 
     /// <summary>The scanners a set of checks needs: Trivy for packages, secrets and settings, Semgrep for code, .NET for NuGet packages.</summary>
     public static IReadOnlyList<string> TasksFor(IReadOnlyCollection<Check> checks)
@@ -114,7 +115,7 @@ public static class ScannerJob
     }
 
     /// <summary>The scan's job; each run carries a mark of its own, or Nomad keeps an unchanged batch job and nothing runs again.</summary>
-    public static JsonObject Of(CopyPlace copy, IReadOnlyCollection<Check> checks, string run, SecurityOptions options)
+    public static JsonObject Of(WorkspacePlace<string> copy, IReadOnlyCollection<Check> checks, string run, SecurityOptions options)
     {
         var scanners = TasksFor(checks);
         JsonArray tasks = [.. scanners.Select(task => (JsonNode)Task(task, copy, checks, run, options))];
@@ -127,8 +128,8 @@ public static class ScannerJob
 
         var job = new JsonObject
         {
-            ["ID"] = copy.Job,
-            ["Name"] = copy.Job,
+            ["ID"] = ScanJob.Of(copy.Task),
+            ["Name"] = ScanJob.Of(copy.Task),
             ["Type"] = "batch",
             ["Datacenters"] = new JsonArray(options.Datacenter),
             ["Meta"] = new JsonObject { ["s3l.security.copy"] = copy.Path, ["s3l.security.run"] = run },
@@ -149,7 +150,7 @@ public static class ScannerJob
         return job;
     }
 
-    private static JsonObject Task(string name, CopyPlace copy, IReadOnlyCollection<Check> checks, string run, SecurityOptions options)
+    private static JsonObject Task(string name, WorkspacePlace<string> copy, IReadOnlyCollection<Check> checks, string run, SecurityOptions options)
     {
         if (name == Dotnet)
             return Isolated(options);
@@ -224,7 +225,7 @@ public static class ScannerJob
     }
 
     /// <summary>A task around the .NET scanner, on no network: the stage reads the one copy, the collection writes the one report.</summary>
-    private static JsonObject Lifecycle(string name, string hook, string script, CopyPlace copy, string run, SecurityOptions options)
+    private static JsonObject Lifecycle(string name, string hook, string script, WorkspacePlace<string> copy, string run, SecurityOptions options)
     {
         bool isStage = name == Stage;
         var config = new JsonObject
@@ -288,7 +289,7 @@ public static class ScannerJob
         ];
     }
 
-    private static JsonObject Env(CopyPlace copy, string run, SecurityOptions options)
+    private static JsonObject Env(WorkspacePlace<string> copy, string run, SecurityOptions options)
     {
         var env = new JsonObject
         {

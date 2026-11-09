@@ -1,8 +1,10 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Snail.MCP.Security.Application;
 using Snail.MCP.Security.Application.Ports;
 using Snail.MCP.Security.Configuration;
+using Snail.Sdk.Mcp.Hosting;
+using Snail.Sdk.Mcp.Hosting.Sessions;
+using Snail.Sdk.Mcp.Testing;
 
 namespace Snail.MCP.Security.Tests.Application;
 
@@ -12,22 +14,19 @@ public sealed class ScansTests
 
     private static Scans Of(FakeScanner scanner, IScanHistory history, string? root = Copy)
     {
-        var context = new DefaultHttpContext();
-        if (root is not null)
-            context.Request.QueryString = QueryString.Create(SessionCopy.Parameter, root);
-
+        var address = root is null ? new FixedAddress() : new FixedAddress((SessionCopy.Parameter, root));
         var options = Options.Create(new SecurityOptions());
 
-        return new Scans(new SessionCopy(new HttpContextAccessor { HttpContext = context }, options), scanner, history, options, TimeProvider.System);
+        return new Scans(new SessionCopy(address, options), scanner, history, options, TimeProvider.System);
     }
 
     private static async Task<Answer<ScanReport>> ScanAsync(Scans scans, IReadOnlyList<string>? checks)
     {
         var request = scans.Plan(checks);
-        if (request.Value is not { } wanted)
-            return Answer.Failed<ScanReport>(request.Error!, request.Hint);
+        if (!request.TryGet(out var planned))
+            return request.As<ScanReport>();
 
-        return Answer.Ok(await scans.RunAsync(wanted, CancellationToken.None));
+        return Answer.Ok(await scans.RunAsync(planned, CancellationToken.None));
     }
 
     private static readonly Finding Secret = new(Check.Secrets, Severity.Critical, "github-pat", "token", "appsettings.json:5");
@@ -66,6 +65,7 @@ public sealed class ScansTests
         var answer = await ScanAsync(Of(scanner, new MemoryHistory()), ["packages", "licences"]);
 
         Assert.Equal(Messages.UnknownChecks(["licences"], Scans.Words.Keys), answer.Error);
+        Assert.Equal(ToolFailures.Arguments, answer.Type);
         Assert.Empty(scanner.Asked);
     }
 
@@ -97,14 +97,52 @@ public sealed class ScansTests
         var answer = await Of(new FakeScanner(), new MemoryHistory()).FindingsAsync(null, null, 0, null, CancellationToken.None);
 
         Assert.Equal(Messages.NotScanned, answer.Error);
+        Assert.Equal("notScanned", answer.Type);
     }
 
+    /// <summary>A severity or a check the server does not know is the SDK's <c>arguments</c>, told apart from a task with no scan yet.</summary>
     [Theory]
-    [InlineData("/etc")]
-    [InlineData("/workspaces/../etc")]
-    [InlineData("/workspaces/Task_1/step-1")]
-    public void SessionCopy_RootOutsideTheWorkspaces_IsRefused(string root)
+    [InlineData("urgent", null)]
+    [InlineData(null, "licences")]
+    public async Task FindingsAsync_UnknownSeverityOrCheck_IsTypedArguments(string? severity, string? check)
     {
-        Assert.NotNull(SessionCopy.Of(root, "/workspaces").Error);
+        var answer = await Of(new FakeScanner(), new MemoryHistory()).FindingsAsync(severity, check, 0, null, CancellationToken.None);
+
+        Assert.Equal(ToolFailures.Arguments, answer.Type);
+    }
+
+    /// <summary>One sentence for every root that is no task's copy, typed by the reason so a program can tell them apart.</summary>
+    [Theory]
+    [InlineData("/etc", Reached.Outside)]
+    [InlineData("/workspaces/../etc", "malformed")]
+    [InlineData("/workspaces/Task_1/step-1", "notATask")]
+    [InlineData("/workspaces", Reached.Outside)]
+    public void SessionCopy_RootOutsideTheWorkspaces_IsRefused(string root, string type)
+    {
+        var answer = SessionCopy.Of(root, "/workspaces");
+
+        Assert.Equal(Messages.CopyOutside(root, "/workspaces"), answer.Error);
+        Assert.Equal(type, answer.Type);
+    }
+
+    /// <summary>No copy and a copy outside the root are different facts, and the caller is told which.</summary>
+    [Theory]
+    [InlineData(null)]
+    [InlineData(" ")]
+    public void SessionCopy_NoRoot_SaysWhereTheCopyComesFrom(string? root)
+    {
+        var answer = SessionCopy.Of(root, "/workspaces");
+
+        Assert.Equal(Messages.NoCopy, answer.Error);
+        Assert.Equal(Messages.NoCopyHint, answer.Hint);
+        Assert.Equal(Reached.NoRoot, answer.Type);
+    }
+
+    [Fact]
+    public void SessionCopy_RootUnderATask_IsTheCopyOfThatTask()
+    {
+        var answer = SessionCopy.Of("/workspaces/0c2b9e1f/step-2/", "/workspaces/");
+
+        Assert.Equal(new WorkspacePlace<string>("0c2b9e1f", "/workspaces/0c2b9e1f/step-2"), answer.Value);
     }
 }

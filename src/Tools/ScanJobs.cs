@@ -35,7 +35,7 @@ public sealed class ScanJobs(Jobs jobs, Scans scans, IOptions<SecurityOptions> o
                 return running;
 
             int shown = options.Value.ShownFindings;
-            var job = jobs.Start(Kind, request.Copy.Task, async (_, token) => ToolResponse.Scan(await scans.RunAsync(request, token), shown), AnswerJson.Default.JsonObject);
+            var job = jobs.Start(Kind, request.Copy.Task, async (_, token) => AnswerFields.Of(await scans.RunAsync(request, token), shown), ToolAnswer.ObjectInfo);
 
             _running[key] = job;
             _ = ForgetAsync(key, job);

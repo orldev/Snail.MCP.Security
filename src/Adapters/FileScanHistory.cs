@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Snail.MCP.Security.Application.Ports;
+using Snail.MCP.Security.Configuration;
 using Snail.Sdk.Mcp.Hosting;
 
 namespace Snail.MCP.Security.Adapters;
@@ -12,7 +13,7 @@ public sealed class FileScanHistory(string folder) : IScanHistory
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _gates = new(StringComparer.Ordinal);
 
     /// <summary>The history in the server's own data folder.</summary>
-    public static FileScanHistory InDataFolder() => new(Path.Combine(ServerFolders.DataDirectory("security"), "scans"));
+    public static FileScanHistory InDataFolder() => new(Path.Combine(ServerFolders.DataDirectory(SecuritySettings.Name), "scans"));
 
     /// <inheritdoc />
     public async Task<ScanReport?> LastAsync(string task, CancellationToken cancellationToken)

@@ -3,9 +3,9 @@ using System.Net;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Snail.MCP.Security.Adapters;
-using Snail.MCP.Security.Application;
 using Snail.MCP.Security.Application.Ports;
 using Snail.MCP.Security.Configuration;
+using Snail.Sdk.Mcp.Hosting.Sessions;
 using Snail.Toolkit.Nomad;
 
 namespace Snail.MCP.Security.Tests.Adapters;
@@ -13,7 +13,7 @@ namespace Snail.MCP.Security.Tests.Adapters;
 /// <summary>The scan's job against a Nomad that answers from a script: what the scanner does when the scan does not go as planned.</summary>
 public sealed class NomadScannerTests
 {
-    private static readonly CopyPlace Copy = new("task-1", "/workspaces/task-1/step-1");
+    private static readonly WorkspacePlace<string> Copy = new("task-1", "/workspaces/task-1/step-1");
 
     /// <summary>A client that gives up mid-scan must not leave the scanners reading the copy for the rest of the scan time.</summary>
     [Fact]

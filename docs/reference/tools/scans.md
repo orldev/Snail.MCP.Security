@@ -11,7 +11,8 @@ high and every check ran. The answer names the 20 worst findings and how this sc
 before it: fixed, new, remaining. A scan takes up to 900 seconds; scans run one at a time. The scan runs as a job:
 the answer is the job's report, with the scan as its result when it ends within the wait, or the running job,
 whose resource job://security/scan/&lt;id&gt; carries the scan once it ends; the last scan is also read with
-security_findings. Asking for the same scan while it runs answers with that scan's job, not a second scan.
+security_findings. A scan that failed or was cancelled answers ok false with its job's report, which says why.
+Asking for the same scan while it runs answers with that scan's job, not a second scan.
 
 *read-only · repeat-safe · stays on this machine.*
 

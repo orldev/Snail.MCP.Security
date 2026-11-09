@@ -1,5 +1,5 @@
-using Snail.MCP.Security.Application;
 using Snail.MCP.Security.Application.Ports;
+using Snail.Sdk.Mcp.Hosting.Sessions;
 
 namespace Snail.MCP.Security.Tests.Application;
 
@@ -13,7 +13,7 @@ internal sealed class FakeScanner : IScanner
     /// <summary>What the scan waits for before it answers; done already unless a test holds it.</summary>
     public Task Held { get; set; } = Task.CompletedTask;
 
-    public async Task<ScanOutcome> ScanAsync(CopyPlace copy, IReadOnlyCollection<Check> checks, CancellationToken cancellationToken)
+    public async Task<ScanOutcome> ScanAsync(WorkspacePlace<string> copy, IReadOnlyCollection<Check> checks, CancellationToken cancellationToken)
     {
         Asked.Add(checks);
         await Held.WaitAsync(cancellationToken);

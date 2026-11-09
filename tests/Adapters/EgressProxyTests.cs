@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Snail.MCP.Security.Adapters;
 using Snail.MCP.Security.Configuration;
+using Snail.Sdk.Mcp.Testing;
 
 namespace Snail.MCP.Security.Tests.Adapters;
 
@@ -69,7 +70,7 @@ public sealed class EgressProxyTests
     public async Task Connection_ToAHostNotNamed_IsRefusedWithItsStatus(string head, string status)
     {
         using var stopping = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-        using var proxy = new EgressProxy(Options.Create(new SecurityOptions { ProxyPort = FreePort(), ProxyHosts = Hosts }), NullLogger<EgressProxy>.Instance);
+        using var proxy = new EgressProxy(Options.Create(new SecurityOptions { ProxyPort = Ports.Free(), ProxyHosts = Hosts }), NullLogger<EgressProxy>.Instance);
         await proxy.StartAsync(stopping.Token);
 
         string answer = await AskAsync(proxy, head, stopping.Token);
@@ -124,7 +125,7 @@ public sealed class EgressProxyTests
     }
 
     private static EgressProxy Limited(int maxConnections) =>
-        new(Options.Create(new SecurityOptions { ProxyPort = FreePort(), ProxyHosts = Hosts }), NullLogger<EgressProxy>.Instance)
+        new(Options.Create(new SecurityOptions { ProxyPort = Ports.Free(), ProxyHosts = Hosts }), NullLogger<EgressProxy>.Instance)
         {
             MaxConnections = maxConnections,
             HeadTimeout = TimeSpan.FromMilliseconds(300)
@@ -154,13 +155,5 @@ public sealed class EgressProxyTests
         using var reader = new StreamReader(stream, Encoding.ASCII);
 
         return await reader.ReadToEndAsync(cancellationToken);
-    }
-
-    private static int FreePort()
-    {
-        using var listener = new TcpListener(IPAddress.Loopback, 0);
-        listener.Start();
-
-        return ((IPEndPoint)listener.LocalEndpoint).Port;
     }
 }

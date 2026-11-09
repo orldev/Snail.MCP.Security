@@ -70,13 +70,13 @@ public static class Messages
     /// <summary>A site that does not resolve.</summary>
     public static string Unresolved(string host) => $"{host} has no address in the public DNS.";
 
+    /// <summary>The ownership key's file refused, with what replacing it would cost the customers.</summary>
+    public static string KeyRefused(string refusal) =>
+        $"{refusal} A new key changes every site's ownership code: every customer who proved a domain would publish its TXT record again.";
+
     /// <summary>A site with no check yet.</summary>
     public const string SiteNotScanned = "This site has no check yet.";
 
     /// <summary>What makes one.</summary>
     public const string SiteNotScannedHint = "Call security_site_scan first.";
-
-    /// <summary>An ownership key file that is not a key: refused rather than used, since a new one would change every domain's code.</summary>
-    public static string ProofKeyBroken(string file, int length, int expected) =>
-        $"The ownership key {file} holds {length} bytes instead of {expected}. Restore it from a backup; deleting it makes a new key and every domain has to publish its code again.";
 }

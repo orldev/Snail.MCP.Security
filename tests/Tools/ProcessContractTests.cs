@@ -1,10 +1,8 @@
-using System.Diagnostics;
-using System.Net;
-using System.Net.Sockets;
 using ModelContextProtocol;
 using ModelContextProtocol.Client;
 using Snail.Sdk.Mcp.Hosting;
 using Snail.Sdk.Mcp.Hosting.Jobs;
+using Snail.Sdk.Mcp.Hosting.Sessions;
 using Snail.Sdk.Mcp.JobClient;
 using Snail.Sdk.Mcp.Testing;
 
@@ -12,7 +10,7 @@ namespace Snail.MCP.Security.Tests.Tools;
 
 /// <summary>
 /// The program as the platform starts it — the build beside the tests, or the publication <c>SNAIL_SECURITY_SERVER</c>
-/// names — asked over HTTP.
+/// names — asked over HTTP, at the address <c>SNAIL_MCP_SECURITY_URL</c> gives it, ready once <c>/healthz</c> answers.
 /// </summary>
 /// <remarks>Nomad's address names a port nothing listens on: no scan runs, and the tools that need the scheduler have to say so in an answer of their own.</remarks>
 public sealed class ProcessContractTests : IAsyncLifetime
@@ -21,58 +19,15 @@ public sealed class ProcessContractTests : IAsyncLifetime
 
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(60);
 
-    private readonly Uri _address = new($"http://127.0.0.1:{FreePort()}");
-    private Process _server = default!;
+    private HttpServerProgram _server = null!;
 
-    public async Task InitializeAsync()
-    {
-        var (command, arguments) = ServerProgram.Command("Snail.MCP.Security", ServerVariable);
-        var start = new ProcessStartInfo(command, arguments)
-        {
-            RedirectStandardInput = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
+    public async Task InitializeAsync() =>
+        _server = await HttpServerProgram.StartAsync(
+            "Snail.MCP.Security",
+            ServerVariable,
+            new Dictionary<string, string?> { ["SNAIL_MCP_SECURITY_NOMAD_ADDRESS"] = $"http://127.0.0.1:{Ports.Free()}" });
 
-        start.Environment["HOME"] = ServerProgram.Home;
-        start.Environment["SNAIL_MCP_SECURITY_URL"] = _address.ToString();
-        start.Environment["SNAIL_MCP_SECURITY_NOMAD_ADDRESS"] = $"http://127.0.0.1:{FreePort()}";
-        start.Environment[ServerSettings.FileVariableOf("security")] = ServerProgram.NoSettingsFile;
-
-        _server = Process.Start(start)!;
-        _server.OutputDataReceived += (_, _) => { };
-        _server.ErrorDataReceived += (_, _) => { };
-        _server.BeginOutputReadLine();
-        _server.BeginErrorReadLine();
-
-        using var waiting = new CancellationTokenSource(Timeout);
-        using var http = new HttpClient { BaseAddress = _address };
-
-        while (true)
-        {
-            try
-            {
-                using var answer = await http.GetAsync(new Uri("/healthz", UriKind.Relative), waiting.Token);
-
-                if (answer.IsSuccessStatusCode)
-                    return;
-            }
-            catch (HttpRequestException) when (!_server.HasExited)
-            {
-            }
-
-            await Task.Delay(100, waiting.Token);
-        }
-    }
-
-    public Task DisposeAsync()
-    {
-        _server.Kill(entireProcessTree: true);
-        _server.WaitForExit();
-        _server.Dispose();
-
-        return Task.CompletedTask;
-    }
+    public async Task DisposeAsync() => await _server.DisposeAsync();
 
     [Fact]
     public async Task ListTools_StartedProgram_OffersEveryTool()
@@ -106,7 +61,8 @@ public sealed class ProcessContractTests : IAsyncLifetime
         var result = await session.CallToolAsync("security_diagnose", cancellationToken: cancellation.Token);
 
         Assert.True(result.IsError);
-        Assert.Contains("did not answer", result.Text(), StringComparison.Ordinal);
+        Assert.Contains("did not answer", result.Error(), StringComparison.Ordinal);
+        Assert.Equal("unreachable", result.Type());
     }
 
     [Fact]
@@ -118,19 +74,24 @@ public sealed class ProcessContractTests : IAsyncLifetime
         var result = await session.CallToolAsync("security_scan", cancellationToken: cancellation.Token);
 
         Assert.True(result.IsError);
-        Assert.Contains("?root=", result.Text(), StringComparison.Ordinal);
+        Assert.Equal(Reached.NoRoot, result.Type());
+        Assert.Contains("?root=", result.Hint(), StringComparison.Ordinal);
     }
 
+    /// <summary>A role given some of the tools sees those alone, and a call to another is refused by name in the envelope.</summary>
     [Fact]
-    public async Task CallTool_ToolNotGrantedToTheSession_IsRefusedByName()
+    public async Task CallTool_ToolNotGrantedToTheSession_IsHiddenAndRefusedByName()
     {
         using var cancellation = new CancellationTokenSource(Timeout);
         await using var session = await SessionAsync("tool=security_findings", cancellation.Token);
 
+        var tools = await session.ListToolsAsync(cancellationToken: cancellation.Token);
         var result = await session.CallToolAsync("security_scan", cancellationToken: cancellation.Token);
 
+        Assert.Equal(["security_findings"], tools.Select(tool => tool.Name));
         Assert.True(result.IsError);
-        Assert.Contains("'security_scan' was not granted", result.Text(), StringComparison.Ordinal);
+        Assert.Equal(GrantOptions.NotGranted, result.Type());
+        Assert.Contains("'security_scan' was not granted", result.Error(), StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -165,7 +126,7 @@ public sealed class ProcessContractTests : IAsyncLifetime
         await using var noCopy = await SessionAsync(null, cancellation.Token);
 
         var started = await scanning.CallToolAsync("security_scan", new Dictionary<string, object?> { ["wait"] = 0 }, cancellationToken: cancellation.Token);
-        var job = new Uri(JobReport.FromJson(started.StructuredContent!.Value.GetRawText())!.Uri);
+        var job = new Uri(started.Report()!.Uri);
 
         var read = await nextStep.ReadResourceAsync(job, cancellationToken: cancellation.Token);
 
@@ -190,8 +151,22 @@ public sealed class ProcessContractTests : IAsyncLifetime
 
         var run = Assert.Single(report.Result!.Value.GetProperty("runs").EnumerateArray());
         Assert.Equal("code", run.GetProperty("check").GetString());
-        Assert.NotEqual(true, page.IsError);
-        Assert.Equal(0, page.StructuredContent!.Value.GetProperty("total").GetInt32());
+        Assert.True(page.IsOk(), page.Text());
+        Assert.Equal(0, page.Data()!["total"]!.GetValue<int>());
+    }
+
+    /// <summary>A parameter the tool does not take is refused before the scan starts, naming the one it probably meant.</summary>
+    [Fact]
+    public async Task CallTool_ParameterTheToolDoesNotTake_IsRefusedAsArguments()
+    {
+        using var cancellation = new CancellationTokenSource(Timeout);
+        await using var session = await SessionAsync("root=/workspaces/0c2b9e1f/step-2", cancellation.Token);
+
+        var result = await session.CallToolAsync("security_scan", new Dictionary<string, object?> { ["check"] = new[] { "code" } }, cancellationToken: cancellation.Token);
+
+        Assert.True(result.IsError);
+        Assert.Equal(ToolFailures.Arguments, result.Type());
+        Assert.Contains("checks", result.Text(), StringComparison.Ordinal);
     }
 
     /// <summary>A page in a browser always sends Origin and an agent's client never does: no web page may reach the scans.</summary>
@@ -199,24 +174,12 @@ public sealed class ProcessContractTests : IAsyncLifetime
     public async Task Request_FromABrowser_IsRefused()
     {
         using var cancellation = new CancellationTokenSource(Timeout);
-        using var http = new HttpClient();
-        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(_address, "/mcp"));
 
-        request.Headers.Add("Origin", "https://example.com");
+        var problems = await HttpGuards.ProblemsAsync(_server.Endpoint, cancellation.Token);
 
-        using var answer = await http.SendAsync(request, cancellation.Token);
-
-        Assert.Equal(HttpStatusCode.Forbidden, answer.StatusCode);
+        Assert.Empty(problems);
     }
 
     private Task<McpClient> SessionAsync(string? query, CancellationToken cancellationToken) =>
-        McpClient.CreateAsync(new HttpClientTransport(new HttpClientTransportOptions { Endpoint = new Uri(_address, query is null ? "/mcp" : $"/mcp?{query}") }), cancellationToken: cancellationToken);
-
-    private static int FreePort()
-    {
-        using var listener = new TcpListener(IPAddress.Loopback, 0);
-        listener.Start();
-
-        return ((IPEndPoint)listener.LocalEndpoint).Port;
-    }
+        _server.SessionAsync(query, cancellationToken: cancellationToken);
 }

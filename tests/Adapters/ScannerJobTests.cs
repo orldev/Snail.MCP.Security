@@ -1,13 +1,13 @@
 using System.Text.Json.Nodes;
 using Snail.MCP.Security.Adapters;
-using Snail.MCP.Security.Application;
 using Snail.MCP.Security.Configuration;
+using Snail.Sdk.Mcp.Hosting.Sessions;
 
 namespace Snail.MCP.Security.Tests.Adapters;
 
 public sealed class ScannerJobTests
 {
-    private static readonly CopyPlace Copy = new("0c2b9e1f", "/workspaces/0c2b9e1f/step-2");
+    private static readonly WorkspacePlace<string> Copy = new("0c2b9e1f", "/workspaces/0c2b9e1f/step-2");
 
     private static readonly SecurityOptions Options = new() { Proxy = "http://mcp-security:3128" };
 
