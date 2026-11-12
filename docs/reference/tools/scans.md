@@ -19,7 +19,7 @@ Asking for the same scan while it runs answers with that scan's job, not a secon
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `checks` | `array?` | — | `null` | Which checks to run, any of packages, secrets, config and code; every one when not given. |
-| `wait` | `integer` | — | `60` | Seconds to wait for the scan before answering with the running job; 60 when not given, 0 answers with the job at once. |
+| `wait` | `integer` | — | `60` | Seconds to wait for the scan before answering with the running job, 0 or more; 60 when not given, 0 answers with the job at once. |
 
 <details><summary>JSON Schema</summary>
 
@@ -42,7 +42,7 @@ Asking for the same scan while it runs answers with that scan's job, not a secon
       "default": null
     },
     "wait": {
-      "description": "Seconds to wait for the scan before answering with the running job; 60 when not given, 0 answers with the job at once.",
+      "description": "Seconds to wait for the scan before answering with the running job, 0 or more; 60 when not given, 0 answers with the job at once.",
       "type": "integer",
       "default": 60
     }
@@ -64,8 +64,8 @@ asked for more, at most 100.
 | --- | --- | --- | --- | --- |
 | `severity` | `string?` | — | `null` | Only findings this severe or worse: critical, high, medium, low or unknown; all when not given. |
 | `check` | `string?` | — | `null` | Only findings of one check: packages, secrets, config and code; all when not given. |
-| `offset` | `integer` | — | `0` | How many findings to skip, for the next page; 0 when not given. |
-| `limit` | `integer?` | — | `null` | How many findings one page holds; 20 when not given, at most 100. |
+| `offset` | `integer` | — | `0` | How many findings to skip, for the next page, 0 or more; 0 when not given. |
+| `limit` | `integer?` | — | `null` | How many findings one page holds, from 1 to 100; 20 when not given. |
 
 <details><summary>JSON Schema</summary>
 
@@ -90,12 +90,12 @@ asked for more, at most 100.
       "default": null
     },
     "offset": {
-      "description": "How many findings to skip, for the next page; 0 when not given.",
+      "description": "How many findings to skip, for the next page, 0 or more; 0 when not given.",
       "type": "integer",
       "default": 0
     },
     "limit": {
-      "description": "How many findings one page holds; 20 when not given, at most 100.",
+      "description": "How many findings one page holds, from 1 to 100; 20 when not given.",
       "type": [
         "integer",
         "null"

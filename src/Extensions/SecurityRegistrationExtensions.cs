@@ -12,7 +12,14 @@ public static class SecurityRegistrationExtensions
     extension(IServiceCollection services)
     {
         /// <summary>Everything a tool reaches through <see cref="Scans"/>, with Nomad at the address the settings name.</summary>
-        public IServiceCollection AddScans()
+        /// <param name="settings">The server's settings, the same reading <see cref="SecurityOptions"/> is bound from.</param>
+        /// <remarks>
+        /// Nomad's address is <see cref="SecurityOptions.NomadAddress"/> of the same reading the options are bound from, so the
+        /// scanner's messages and the client it calls name one address. It is read from the settings rather than from the
+        /// bound options: Nomad's options are validated at the start too, and reading the bound options there failed with
+        /// their refusal a second time, so every refused setting was said twice.
+        /// </remarks>
+        public IServiceCollection AddScans(IConfiguration settings)
         {
             services.AddSingleton(TimeProvider.System);
             services.AddSingleton<SessionCopy>();
@@ -21,7 +28,7 @@ public static class SecurityRegistrationExtensions
             services.AddSingleton<IFixes, NuGetFixes>();
             services.AddHttpClient(NuGetFixes.Client, client => client.Timeout = TimeSpan.FromSeconds(60)).ConfigurePrimaryHttpMessageHandler(NuGetFixes.Handler);
             services.AddSingleton<Scans>();
-            services.AddNomad(nomad => nomad.Address = SecuritySettings.Read()[nameof(SecurityOptions.NomadAddress)] ?? new SecurityOptions().NomadAddress);
+            services.AddNomad(nomad => nomad.Address = settings[nameof(SecurityOptions.NomadAddress)] ?? new SecurityOptions().NomadAddress);
             services.AddHostedService<EgressProxy>();
 
             return services;

@@ -2,6 +2,7 @@ using System.ComponentModel;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using Snail.MCP.Security.Application;
+using Snail.Sdk.Mcp.Hosting;
 using Snail.Sdk.Mcp.Hosting.Jobs;
 
 namespace Snail.MCP.Security.Tools;
@@ -24,6 +25,9 @@ public sealed class SecurityTools(Scans scans, ScanJobs running)
         [Description(ToolDescriptions.ScanWait)] int wait = 60,
         CancellationToken cancellationToken = default)
     {
+        if (wait < 0)
+            return ToolAnswer.Failed(Messages.WaitBelowZero(wait), type: ToolFailures.Arguments);
+
         var request = scans.Plan(checks);
         if (!request.TryGet(out var planned))
             return ToolAnswer.Failed(request);

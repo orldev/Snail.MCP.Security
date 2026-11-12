@@ -43,6 +43,10 @@ public sealed class Scans(SessionCopy session, IScanner scanner, IScanHistory hi
     }
 
     /// <summary>One page of the task's last scan, narrowed to a severity and up and to one check when the caller names them.</summary>
+    /// <remarks>
+    /// An offset below zero or a page outside 1 to <see cref="SecurityOptions.MaxPage"/> is refused as the SDK's
+    /// <c>arguments</c>: it used to be clamped in silence, so a caller asking for 500 findings read 100 and took them for all.
+    /// </remarks>
     public async Task<Answer<FindingPage>> FindingsAsync(string? severity, string? check, int offset, int? limit, CancellationToken cancellationToken)
     {
         var place = session.Current();
@@ -67,14 +71,20 @@ public sealed class Scans(SessionCopy session, IScanner scanner, IScanHistory hi
             only = named;
         }
 
+        if (offset < 0)
+            return Answer.Failed(Messages.OffsetBelowZero(offset), type: ToolFailures.Arguments);
+
+        int most = options.Value.MaxPage;
+        if (limit is { } asked && (asked < 1 || asked > most))
+            return Answer.Failed(Messages.LimitOutOfRange(asked, most), type: ToolFailures.Arguments);
+
         if (await history.LastAsync(copy.Task, cancellationToken) is not { } report)
             return Answer.Failed(Messages.NotScanned, Messages.NotScannedHint, FailureTypes.NotScanned);
 
         var matching = report.Ordered.Where(finding => (floor is null || finding.Severity <= floor) && (only is null || finding.Check == only)).ToList();
-        int size = Math.Clamp(limit ?? options.Value.ShownFindings, 1, options.Value.MaxPage);
-        int start = Math.Max(0, offset);
+        int size = limit ?? options.Value.ShownFindings;
 
-        return Answer.Ok(new FindingPage(matching.Count, start, [.. matching.Skip(start).Take(size)], report.At));
+        return Answer.Ok(new FindingPage(matching.Count, offset, [.. matching.Skip(offset).Take(size)], report.At));
     }
 }
 

@@ -111,6 +111,34 @@ public sealed class ScansTests
         Assert.Equal(ToolFailures.Arguments, answer.Type);
     }
 
+    /// <summary>A page before the first finding, of none, or past a page used to be clamped in silence; it is refused as the caller's mistake.</summary>
+    [Theory]
+    [InlineData(-1, null)]
+    [InlineData(0, 0)]
+    [InlineData(0, 101)]
+    public async Task FindingsAsync_OffsetBelowZeroOrLimitOutsideAPage_IsTypedArguments(int offset, int? limit)
+    {
+        var scanner = new FakeScanner { Next = new([Package, Secret], []) };
+        var history = new MemoryHistory();
+        await ScanAsync(Of(scanner, history), null);
+
+        var answer = await Of(scanner, history).FindingsAsync(null, null, offset, limit, CancellationToken.None);
+
+        Assert.Equal(ToolFailures.Arguments, answer.Type);
+    }
+
+    [Fact]
+    public async Task FindingsAsync_LimitOfAWholePage_IsThatPage()
+    {
+        var scanner = new FakeScanner { Next = new([Package, Secret], []) };
+        var history = new MemoryHistory();
+        await ScanAsync(Of(scanner, history), null);
+
+        var answer = await Of(scanner, history).FindingsAsync(null, null, 1, 100, CancellationToken.None);
+
+        Assert.Equal((2, 1, 1), (answer.Value!.Total, answer.Value.Offset, answer.Value.Findings.Count));
+    }
+
     /// <summary>One sentence for every root that is no task's copy, typed by the reason so a program can tell them apart.</summary>
     [Theory]
     [InlineData("/etc", Reached.Outside)]

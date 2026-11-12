@@ -36,6 +36,13 @@ RUN case "$TARGETARCH" in amd64|"") rid=linux-x64 ;; *) rid="linux-$TARGETARCH" 
 FROM mcr.microsoft.com/dotnet/runtime-deps:10.0
 ARG VERSION
 LABEL org.opencontainers.image.version=$VERSION
+# tini runs as process 1 and starts the program under it: .NET ends an unhandled exception with SIGABRT, which process
+# 1 of a container ignores, so run as process 1 itself a program that fails at start spins at a full core and never
+# exits, and nothing restarts it. Under tini a crash exits with 134; a setting refused at the start is one line on
+# stderr and exit code 1.
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends tini \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /app .
 # The scan history lives in the server's data folder, a volume on the stand: made here so the volume takes the app user's ownership.
@@ -43,4 +50,4 @@ RUN mkdir -p /home/app/.s3l-mcp-security && chown -R app:app /home/app
 EXPOSE 8829 3128
 USER app
 
-ENTRYPOINT ["/app/Snail.MCP.Security"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/app/Snail.MCP.Security"]

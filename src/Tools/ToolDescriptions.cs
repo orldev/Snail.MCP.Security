@@ -27,7 +27,7 @@ public static class ToolDescriptions
         """;
 
     /// <summary>The wait parameter of security_scan.</summary>
-    public const string ScanWait = "Seconds to wait for the scan before answering with the running job; 60 when not given, 0 answers with the job at once.";
+    public const string ScanWait = "Seconds to wait for the scan before answering with the running job, 0 or more; 60 when not given, 0 answers with the job at once.";
 
     /// <summary>The checks parameter of security_scan.</summary>
     public const string ScanChecks = $"Which checks to run, any of {Checks}; every one when not given.";
@@ -47,10 +47,10 @@ public static class ToolDescriptions
     public const string FindingsCheck = $"Only findings of one check: {Checks}; all when not given.";
 
     /// <summary>The offset parameter of security_findings.</summary>
-    public const string FindingsOffset = "How many findings to skip, for the next page; 0 when not given.";
+    public const string FindingsOffset = "How many findings to skip, for the next page, 0 or more; 0 when not given.";
 
     /// <summary>The limit parameter of security_findings.</summary>
-    public const string FindingsLimit = "How many findings one page holds; 20 when not given, at most 100.";
+    public const string FindingsLimit = "How many findings one page holds, from 1 to 100; 20 when not given.";
 
     /// <summary>The contract of security_diagnose.</summary>
     public const string Diagnose =

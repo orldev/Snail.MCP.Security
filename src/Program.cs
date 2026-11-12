@@ -1,10 +1,12 @@
+using Snail.MCP.Security.Configuration;
 using Snail.MCP.Security.Extensions;
 using Snail.Sdk.Mcp.Hosting;
 
 try
 {
-    var app = WebApplication.CreateSecurityBuilder(args)
-        .ConfigureSecurityServer()
+    var settings = SecuritySettings.Read();
+    var app = WebApplication.CreateSecurityBuilder(args, settings)
+        .ConfigureSecurityServer(settings)
         .Build()
         .UseSecurityEndpoints();
 

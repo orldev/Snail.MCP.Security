@@ -24,13 +24,15 @@ public static class SecurityServerExtensions
         /// (<see cref="McpReach.LoopbackOrContainer"/>); on a machine anything beyond loopback is refused at start, naming the
         /// variable that asked for it, since the findings it answers name a copy's secrets and weak spots.
         /// </remarks>
-        public static WebApplicationBuilder CreateSecurityBuilder(string[] args) =>
-            McpHttpHost.CreateBuilder(args, McpEndpoint.ReadHttp(SecuritySettings.Read(), SecuritySettings.DefaultUrl, new McpEndpointOptions { Reach = McpReach.LoopbackOrContainer, Server = SecuritySettings.Name }));
+        /// <param name="args">The program's arguments.</param>
+        /// <param name="settings">The server's settings, read once for the process (<see cref="SecuritySettings.Read()"/>).</param>
+        public static WebApplicationBuilder CreateSecurityBuilder(string[] args, IConfiguration settings) =>
+            McpHttpHost.CreateBuilder(args, McpEndpoint.ReadHttp(settings, SecuritySettings.DefaultUrl, new McpEndpointOptions { Reach = McpReach.LoopbackOrContainer, Server = SecuritySettings.Name }));
     }
 
     extension(WebApplicationBuilder builder)
     {
-        /// <summary>The tools, the scans and the settings, read from the settings file and the <c>SNAIL_MCP_SECURITY_</c> variables only.</summary>
+        /// <summary>The tools, the scans and the settings, which come from the settings file and the <c>SNAIL_MCP_SECURITY_</c> variables only.</summary>
         /// <remarks>
         /// A session for every client (<c>WithLocalHttpTransport</c>): the MCP SDK's HTTP transport is stateless by default,
         /// and a stateless server has no stream to tell a subscriber of a job's end — the job client's wait for a scan never
@@ -39,14 +41,16 @@ public static class SecurityServerExtensions
         /// the answer envelope. A call that leaves out a required parameter or names one a tool does not take is refused
         /// before the tool runs (<c>WithArgumentCheck</c>): <c>check</c> for <c>checks</c> no longer scans everything.
         /// </remarks>
-        public WebApplicationBuilder ConfigureSecurityServer()
+        /// <param name="settings">The same settings the host was made from: read once, so the endpoint and the options never see two readings of a file being edited.</param>
+        public WebApplicationBuilder ConfigureSecurityServer(IConfiguration settings)
         {
             builder.Services
                 .AddOptions<SecurityOptions>()
-                .Bind(SecuritySettings.Read())
+                .Bind(settings)
                 .ValidateOnStart();
+            builder.Services.AddSingleton<IValidateOptions<SecurityOptions>, SecurityOptionsValidation>();
 
-            builder.Services.AddScans();
+            builder.Services.AddScans(settings);
             builder.Services.AddSingleton<ScanJobs>();
 
             builder.Services

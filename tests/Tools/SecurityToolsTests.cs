@@ -3,6 +3,7 @@ using Snail.MCP.Security.Application;
 using Snail.MCP.Security.Configuration;
 using Snail.MCP.Security.Tests.Application;
 using Snail.MCP.Security.Tools;
+using Snail.Sdk.Mcp.Hosting;
 using Snail.Sdk.Mcp.Hosting.Jobs;
 using Snail.Sdk.Mcp.Testing;
 
@@ -81,6 +82,19 @@ public sealed class SecurityToolsTests
 
         Assert.Equal(first.Uri, second.Uri);
         Assert.Single(scanner.Asked);
+    }
+
+    /// <summary>A wait below zero used to start the scan and answer as if it were 0; it is the caller's mistake, refused before any scan.</summary>
+    [Fact]
+    public async Task ScanAsync_WaitBelowZero_IsRefusedAsArgumentsBeforeAnyJob()
+    {
+        var scanner = new FakeScanner();
+
+        var answer = await Of(scanner).ScanAsync(wait: -1);
+
+        Assert.True(answer.IsError);
+        Assert.Equal(ToolFailures.Arguments, answer.Type());
+        Assert.Empty(scanner.Asked);
     }
 
     [Fact]

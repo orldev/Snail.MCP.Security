@@ -36,6 +36,15 @@ public static class Messages
     public static string UnknownSeverity(string severity) =>
         $"\"{severity}\" is not a severity: critical, high, medium, low or unknown.";
 
+    /// <summary>An offset before the first finding.</summary>
+    public static string OffsetBelowZero(int offset) => $"offset is {offset}; it is how many findings to skip, 0 or more.";
+
+    /// <summary>A page of no findings, or of more than a page holds.</summary>
+    public static string LimitOutOfRange(int limit, int most) => $"limit is {limit}; a page holds from 1 to {most} findings.";
+
+    /// <summary>A wait before now.</summary>
+    public static string WaitBelowZero(int wait) => $"wait is {wait}; it is a number of seconds, 0 or more — 0 answers with the job at once.";
+
     /// <summary>A check that did not run, and why.</summary>
     public static string CheckFailed(string check, string reason) => $"The {check} check did not run: {reason}";
 
