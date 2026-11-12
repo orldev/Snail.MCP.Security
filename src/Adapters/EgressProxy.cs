@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -20,6 +21,10 @@ namespace Snail.MCP.Security.Adapters;
 /// head's limit before: a host that never answered, or a tunnel left open and silent, kept its socket for ever, and so
 /// did any number of them at once. The head is read in blocks, and what came after it — a request's body — goes on to
 /// the host instead of being dropped.
+/// </para>
+/// <para>
+/// A tunnel is piped both ways; a plain request is not, since the next request on its connection may name another host:
+/// it carries one request, its host told to close after it (see <c>ForwardAsync</c>).
 /// </para>
 /// </remarks>
 public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<EgressProxy> logger) : BackgroundService
@@ -47,9 +52,16 @@ public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<Egres
     /// <summary>How long a connection may pass nothing either way before it is closed.</summary>
     internal TimeSpan IdleTimeout { get; init; } = TimeSpan.FromMinutes(2);
 
+    /// <summary>The ports a host is reached at: the web's; a test names the port of a host of its own.</summary>
+    internal IReadOnlyCollection<int> WebPorts { get; init; } = [80, 443];
+
     /// <summary>Whether a request for this host and port may go through.</summary>
     public static bool Allows(IReadOnlyCollection<string> hosts, string host, int port) =>
-        port is 80 or 443 && hosts.Contains(host, StringComparer.OrdinalIgnoreCase);
+        Allows(hosts, [80, 443], host, port);
+
+    /// <summary>Whether a request for this host and port may go through, the host reached at one of <paramref name="ports"/>.</summary>
+    internal static bool Allows(IReadOnlyCollection<string> hosts, IReadOnlyCollection<int> ports, string host, int port) =>
+        ports.Contains(port) && hosts.Contains(host, StringComparer.OrdinalIgnoreCase);
 
     /// <summary>The head of a request and whatever arrived after it, or null while the head has not ended.</summary>
     internal static Head? Split(ReadOnlySpan<byte> read)
@@ -119,14 +131,21 @@ public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<Egres
                     return;
                 }
 
-                if (!Allows(options.Value.ProxyHosts, request.Host, request.Port))
+                if (!Allows(options.Value.ProxyHosts, WebPorts, request.Host, request.Port))
                 {
                     Log.ProxyRefused(logger, request.Host, request.Port);
                     await RefuseAsync(stream, "403 Forbidden", cancellationToken);
                     return;
                 }
 
-                await ForwardAsync(stream, request, head, cancellationToken);
+                long? bodyLength = request.IsTunnel ? 0 : Request.BodyLength(head.Bytes);
+                if (bodyLength is not { } length)
+                {
+                    await RefuseAsync(stream, "411 Length Required", cancellationToken);
+                    return;
+                }
+
+                await ForwardAsync(stream, request, head, length, cancellationToken);
             }
             catch (Exception exception) when (exception is IOException or SocketException or OperationCanceledException)
             {
@@ -177,8 +196,17 @@ public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<Egres
         return null;
     }
 
-    /// <summary>Joins the connection to the host it asked for, both ways, until either side ends or both go quiet.</summary>
-    private async Task ForwardAsync(NetworkStream stream, Request request, Head head, CancellationToken cancellationToken)
+    /// <summary>Joins the connection to the host it asked for: a tunnel both ways, a plain request for its one answer.</summary>
+    /// <remarks>
+    /// A tunnel is TLS to the host it named, so whatever passes through it can only be for that host. A plain request is
+    /// not: once the proxy piped the connection raw, the next request on it — kept alive or pipelined — went to the
+    /// address of the first host whatever host it named, unchecked (Go's net/http, Trivy's, reuses one proxy connection
+    /// for plain requests to different hosts). So a plain connection carries one request: the host is told to close after
+    /// it (<c>Connection: close</c>), hears its body as long as <c>Content-Length</c> says and nothing after it, and the
+    /// answer is copied back until the host closes. The client's next request finds the connection closed and opens
+    /// another, whose head is checked like the first.
+    /// </remarks>
+    private async Task ForwardAsync(NetworkStream stream, Request request, Head head, long bodyLength, CancellationToken cancellationToken)
     {
         using var upstream = new TcpClient();
 
@@ -191,27 +219,56 @@ public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<Egres
         NetworkStream far = upstream.GetStream();
 
         if (request.IsTunnel)
+        {
             await stream.WriteAsync("HTTP/1.1 200 Connection established\r\n\r\n"u8.ToArray(), cancellationToken);
-        else
-            await far.WriteAsync(request.Forwarded(head.Bytes), cancellationToken);
 
-        if (head.Rest.Length > 0)
-            await far.WriteAsync(head.Rest, cancellationToken);
+            if (head.Rest.Length > 0)
+                await far.WriteAsync(head.Rest, cancellationToken);
 
-        await PumpAsync(stream, far, cancellationToken);
+            await PumpAsync(stream, far, bothWays: true, cancellationToken);
+            return;
+        }
+
+        await far.WriteAsync(request.Forwarded(head.Bytes), cancellationToken);
+        await BodyAsync(stream, far, head.Rest, bodyLength, cancellationToken);
+        await PumpAsync(stream, far, bothWays: false, cancellationToken);
     }
 
-    /// <summary>Copies both ways until either side ends or nothing passes for the idle span.</summary>
+    /// <summary>Sends the host the body of a plain request: what came with the head, then the rest of its length from the client.</summary>
+    private async Task BodyAsync(NetworkStream near, NetworkStream far, byte[] rest, long length, CancellationToken cancellationToken)
+    {
+        int already = (int)Math.Min(rest.Length, length);
+        if (already > 0)
+            await far.WriteAsync(rest.AsMemory(0, already), cancellationToken);
+
+        long left = length - already;
+        var buffer = new byte[CopyBytes];
+        using var reading = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        while (left > 0)
+        {
+            reading.CancelAfter(IdleTimeout);
+
+            int got = await near.ReadAsync(buffer.AsMemory(0, (int)Math.Min(buffer.Length, left)), reading.Token);
+            if (got == 0)
+                return;
+
+            await far.WriteAsync(buffer.AsMemory(0, got), cancellationToken);
+            left -= got;
+        }
+    }
+
+    /// <summary>Copies until either side ends or nothing passes for the idle span: both ways for a tunnel, the host's answer alone for a plain request.</summary>
     /// <remarks>
     /// Once one direction ends, the others are cancelled and awaited before the upstream socket is disposed: a copy left
     /// running on a disposed socket threw unobserved (CA2025).
     /// </remarks>
-    private async Task PumpAsync(NetworkStream near, NetworkStream far, CancellationToken cancellationToken)
+    private async Task PumpAsync(NetworkStream near, NetworkStream far, bool bothWays, CancellationToken cancellationToken)
     {
         using var open = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var traffic = new Traffic();
 
-        Task outbound = CopyAsync(near, far, traffic, open.Token);
+        Task outbound = bothWays ? CopyAsync(near, far, traffic, open.Token) : Task.Delay(Timeout.Infinite, open.Token);
         Task inbound = CopyAsync(far, near, traffic, open.Token);
         Task quiet = QuietAsync(traffic, open.Token);
 
@@ -298,15 +355,61 @@ public sealed class EgressProxy(IOptions<SecurityOptions> options, ILogger<Egres
                 : null;
         }
 
-        /// <summary>The head as the host expects it: the path instead of the whole address, and nothing meant for the proxy.</summary>
+        /// <summary>The length of a plain request's body: its Content-Length, none without one, and null when no length can be trusted.</summary>
+        /// <remarks>
+        /// A chunked body, or a Content-Length that is not one number, ends where the host decides, and the proxy could not
+        /// tell where the next request begins: such a request is refused rather than piped.
+        /// </remarks>
+        public static long? BodyLength(byte[] head)
+        {
+            long? length = 0;
+            bool seen = false;
+
+            foreach (var (name, value) in Fields(head))
+            {
+                if (string.Equals(name, "Transfer-Encoding", StringComparison.OrdinalIgnoreCase))
+                    return null;
+
+                if (!string.Equals(name, "Content-Length", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (!long.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var stated) || (seen && stated != length))
+                    return null;
+
+                length = stated;
+                seen = true;
+            }
+
+            return length;
+        }
+
+        /// <summary>The head as the host expects it: the path instead of the whole address, nothing meant for the proxy, and the connection closed after it.</summary>
         public byte[] Forwarded(byte[] head)
         {
             string[] lines = Encoding.ASCII.GetString(head).Split("\r\n");
             string[] first = lines[0].Split(' ');
             var target = new Uri(Target);
-            IEnumerable<string> kept = lines.Skip(1).Where(line => !line.StartsWith("Proxy-", StringComparison.OrdinalIgnoreCase));
+            IEnumerable<string> kept = lines
+                .Skip(1)
+                .TakeWhile(line => line.Length > 0)
+                .Where(line => !IsHopByHop(line));
 
-            return Encoding.ASCII.GetBytes(string.Join("\r\n", [$"{first[0]} {target.PathAndQuery} {first[2]}", .. kept]));
+            return Encoding.ASCII.GetBytes(string.Join("\r\n", [$"{first[0]} {target.PathAndQuery} {first[2]}", .. kept, "Connection: close", "", ""]));
+        }
+
+        private static bool IsHopByHop(string line) =>
+            line.StartsWith("Proxy-", StringComparison.OrdinalIgnoreCase)
+            || line.StartsWith("Connection:", StringComparison.OrdinalIgnoreCase)
+            || line.StartsWith("Keep-Alive:", StringComparison.OrdinalIgnoreCase);
+
+        private static IEnumerable<(string Name, string Value)> Fields(byte[] head)
+        {
+            foreach (string line in Encoding.ASCII.GetString(head).Split("\r\n").Skip(1))
+            {
+                int colon = line.IndexOf(':', StringComparison.Ordinal);
+                if (colon > 0)
+                    yield return (line[..colon].Trim(), line[(colon + 1)..].Trim());
+            }
         }
     }
 }
