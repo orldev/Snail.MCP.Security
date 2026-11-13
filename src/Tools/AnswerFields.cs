@@ -13,16 +13,16 @@ namespace Snail.MCP.Security.Tools;
 public static class AnswerFields
 {
     /// <summary>A page of findings as its answer carries it.</summary>
-    public static JsonObject Of(FindingPage page) => new()
+    public static JsonObject Of(FindingPage page, Compliance compliance) => new()
     {
         ["total"] = page.Total,
         ["offset"] = page.Offset,
         ["scannedAt"] = ToolAnswer.Moment(page.ScannedAt),
-        ["findings"] = new JsonArray([.. page.Findings.Select(Of)])
+        ["findings"] = new JsonArray([.. page.Findings.Select(finding => Of(finding, compliance))])
     };
 
     /// <summary>A scan as an answer carries it: the verdict, each check's run, the comparison and the worst findings.</summary>
-    public static JsonObject Of(ScanReport report, int shown)
+    public static JsonObject Of(ScanReport report, int shown, Compliance compliance)
     {
         var counts = new JsonObject([.. Enum.GetValues<Severity>().Select(severity => KeyValuePair.Create(ToolAnswer.Word(severity), (JsonNode?)report.Findings.Count(finding => finding.Severity == severity)))]);
         var ordered = report.Ordered;
@@ -34,7 +34,7 @@ public static class AnswerFields
             ["counts"] = counts,
             ["runs"] = new JsonArray([.. report.Runs.Select(run => new JsonObject { ["check"] = ToolAnswer.Word(run.Check), ["ran"] = run.HasRun, ["note"] = run.Note })]),
             ["since"] = report.Since is { } since ? new JsonObject { ["fixed"] = since.Fixed, ["new"] = since.New, ["remaining"] = since.Remaining } : null,
-            ["findings"] = new JsonArray([.. ordered.Take(shown).Select(Of)]),
+            ["findings"] = new JsonArray([.. ordered.Take(shown).Select(finding => Of(finding, compliance))]),
             ["more"] = Math.Max(0, ordered.Count - shown),
             ["note"] = report.Runs.Any(run => !run.HasRun) ? Messages.Partial : report.IsClean ? Messages.Clean : Messages.Blocked
         };
@@ -52,9 +52,9 @@ public static class AnswerFields
     };
 
     /// <summary>A site's scan as security_site_scan answers it: the proof it was made under, then the scan as a copy's is told.</summary>
-    public static JsonObject Of(SiteScan scan, int shown)
+    public static JsonObject Of(SiteScan scan, int shown, Compliance compliance)
     {
-        var data = Of(scan.Report, shown);
+        var data = Of(scan.Report, shown, compliance);
         data.Remove("since");
         data.Insert(0, "site", scan.Proof.Site.Host);
         data.Insert(1, "provenBy", scan.Proof.ProvenBy);
@@ -62,24 +62,31 @@ public static class AnswerFields
         return data;
     }
 
-    /// <summary>A finding as a page and a scan carry it.</summary>
-    public static JsonObject Of(Finding finding) => new()
+    /// <summary>A finding as a page and a scan carry it: what it is, then a field per compliance catalog with the references it falls under.</summary>
+    /// <remarks>A catalog that is titled names a reference with its title after the code (<c>ens</c>), any other by its code alone (<c>nis2</c>).</remarks>
+    public static JsonObject Of(Finding finding, Compliance compliance)
     {
-        ["check"] = ToolAnswer.Word(finding.Check),
-        ["severity"] = ToolAnswer.Word(finding.Severity),
-        ["rule"] = finding.Rule,
-        ["title"] = finding.Title,
-        ["where"] = finding.Location,
-        ["package"] = finding.Package,
-        ["version"] = finding.Version,
-        ["fixedIn"] = finding.FixedIn,
-        ["link"] = finding.Link,
-        ["ens"] = new JsonArray([.. Compliance.Ens(finding).Select(reference => JsonValue.Create($"{reference.Code} {reference.Title}"))]),
-        ["nis2"] = new JsonArray([.. Compliance.Nis2(finding).Select(reference => JsonValue.Create(reference.Code))])
-    };
+        var data = new JsonObject
+        {
+            ["check"] = ToolAnswer.Word(finding.Check),
+            ["severity"] = ToolAnswer.Word(finding.Severity),
+            ["rule"] = finding.Rule,
+            ["title"] = finding.Title,
+            ["where"] = finding.Location,
+            ["package"] = finding.Package,
+            ["version"] = finding.Version,
+            ["fixedIn"] = finding.FixedIn,
+            ["link"] = finding.Link
+        };
 
-    /// <summary>What security_diagnose answers: the server's version, Nomad's, the images, network and proxy copy scans run with, and what site scans run with.</summary>
-    public static JsonObject Of(string nomad, SecurityOptions settings) => new()
+        foreach (var catalog in compliance.Catalogs)
+            data[catalog.Id] = new JsonArray([.. catalog.Of(finding).Select(reference => JsonValue.Create(catalog.Shown(reference)))]);
+
+        return data;
+    }
+
+    /// <summary>What security_diagnose answers: the server's version, Nomad's, the images, network and proxy copy scans run with, what site scans run with, and the compliance catalogs findings are placed in.</summary>
+    public static JsonObject Of(string nomad, SecurityOptions settings, Compliance compliance) => new()
     {
         ["server"] = typeof(AnswerFields).Assembly.GetName().Version?.ToString(3),
         ["nomad"] = nomad,
@@ -100,6 +107,14 @@ public static class AnswerFields
             ["ports"] = settings.SitePorts,
             ["requestsPerSecond"] = settings.SiteRequestsPerSecond,
             ["packetsPerSecond"] = settings.SitePacketsPerSecond
-        }
+        },
+        ["catalogs"] = new JsonArray([.. compliance.Catalogs.Select(catalog => new JsonObject
+        {
+            ["id"] = catalog.Id,
+            ["name"] = catalog.Name,
+            ["source"] = catalog.Source,
+            ["checked"] = catalog.Checked,
+            ["from"] = catalog.From
+        })])
     };
 }

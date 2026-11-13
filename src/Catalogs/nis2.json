@@ -1,0 +1,29 @@
+{
+  "id": "nis2",
+  "name": "NIS2, Article 21(2)",
+  "source": "Directive (EU) 2022/2555, Article 21(2), EUR-Lex (CELEX 32022L2555)",
+  "checked": "2026-10-15",
+  "titled": false,
+  "notes": [
+    "A cryptographic key in the files adds the cryptography letter (h).",
+    "As of October 2026 Spain has not transposed NIS2: the draft law of 14 January 2025 is still in passage, so for Spanish entities it is the obligation to come, and RDL 12/2018 the one in force."
+  ],
+  "references": [
+    { "code": "NIS2 21(2)(d)", "title": "supply chain security" },
+    { "code": "NIS2 21(2)(e)", "title": "security in network and information systems acquisition, development and maintenance, including vulnerability handling and disclosure" },
+    { "code": "NIS2 21(2)(h)", "title": "policies and procedures regarding the use of cryptography and, where appropriate, encryption" },
+    { "code": "NIS2 21(2)(i)", "title": "human resources security, access control policies and asset management" }
+  ],
+  "checks": [
+    { "check": "packages", "references": [ "NIS2 21(2)(e)", "NIS2 21(2)(d)" ] },
+    { "check": "secrets", "ruleContains": "private-key", "references": [ "NIS2 21(2)(i)", "NIS2 21(2)(h)" ] },
+    { "check": "secrets", "references": [ "NIS2 21(2)(i)" ] },
+    { "check": "config", "references": [ "NIS2 21(2)(e)" ] },
+    { "check": "code", "references": [ "NIS2 21(2)(e)" ] },
+    { "check": "tls", "references": [ "NIS2 21(2)(h)", "NIS2 21(2)(e)" ] },
+    { "check": "headers", "references": [ "NIS2 21(2)(e)" ] },
+    { "check": "mail", "references": [ "NIS2 21(2)(e)" ] },
+    { "check": "exposure", "references": [ "NIS2 21(2)(e)", "NIS2 21(2)(i)" ] },
+    { "check": "services", "references": [ "NIS2 21(2)(e)", "NIS2 21(2)(i)" ] }
+  ]
+}

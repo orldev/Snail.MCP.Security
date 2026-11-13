@@ -50,6 +50,7 @@ public static class SecurityServerExtensions
                 .ValidateOnStart();
             builder.Services.AddSingleton<IValidateOptions<SecurityOptions>, SecurityOptionsValidation>();
 
+            builder.Services.AddCompliance();
             builder.Services.AddScans(settings);
             builder.Services.AddSites();
             builder.Services.AddSingleton<ScanJobs>();

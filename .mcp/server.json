@@ -39,6 +39,11 @@
           "default": "s3l-security-sites"
         },
         {
+          "name": "SNAIL_MCP_SECURITY_COMPLIANCE_CATALOGS",
+          "description": "Folder of compliance catalog files (*.json) that add frameworks such as ISO/IEC 27001 or replace the built-in ENS and NIS2 by id. Default: none.",
+          "isRequired": false
+        },
+        {
           "name": "SNAIL_MCP_SECURITY_URL",
           "description": "Where the server answers. Default: http://127.0.0.1:8829/; inside a container the port is opened on every interface.",
           "isRequired": false,

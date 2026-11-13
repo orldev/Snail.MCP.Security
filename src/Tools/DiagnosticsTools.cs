@@ -9,7 +9,7 @@ namespace Snail.MCP.Security.Tools;
 
 /// <summary>Whether the server can scan: the scheduler, the images, the network and the proxy.</summary>
 [McpServerToolType]
-public sealed class DiagnosticsTools(IScanner scanner, IOptions<SecurityOptions> options)
+public sealed class DiagnosticsTools(IScanner scanner, IOptions<SecurityOptions> options, Compliance compliance)
 {
     /// <summary>Says whether scans can run.</summary>
     [McpServerTool(Name = "security_diagnose", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
@@ -20,6 +20,6 @@ public sealed class DiagnosticsTools(IScanner scanner, IOptions<SecurityOptions>
         if (!reached.TryGet(out var nomad))
             return ToolAnswer.Failed(reached);
 
-        return ToolAnswer.Ok(AnswerFields.Of(nomad, options.Value));
+        return ToolAnswer.Ok(AnswerFields.Of(nomad, options.Value, compliance));
     }
 }

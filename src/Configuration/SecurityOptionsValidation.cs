@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.Extensions.Options;
+using Snail.MCP.Security.Adapters;
 using Snail.Sdk.Mcp.Hosting;
 
 namespace Snail.MCP.Security.Configuration;
@@ -62,6 +63,9 @@ public sealed class SecurityOptionsValidation : IValidateOptions<SecurityOptions
 
         if (!IsSha256(options.NucleiTemplatesSha256))
             problems.Add($"{Setting(nameof(SecurityOptions.NucleiTemplatesSha256))} is '{options.NucleiTemplatesSha256}'; it is the archive's SHA-256, 64 hexadecimal digits.");
+
+        foreach (string problem in CatalogFiles.Problems(options.ComplianceCatalogs))
+            problems.Add($"{Setting(nameof(SecurityOptions.ComplianceCatalogs))}: {problem}");
 
         Pinned(problems, nameof(SecurityOptions.NmapImage), options.NmapImage);
         Pinned(problems, nameof(SecurityOptions.NucleiImage), options.NucleiImage);

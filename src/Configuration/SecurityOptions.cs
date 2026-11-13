@@ -86,6 +86,10 @@ public sealed class SecurityOptions
     /// <summary>Packets a second nmap sends a site at most.</summary>
     public int SitePacketsPerSecond { get; set; } = 50;
 
+    /// <summary>A folder of compliance catalog files, *.json, that add frameworks a finding is placed in or replace the built-in ENS and NIS2 by their id; empty for those two alone.</summary>
+    /// <remarks>The format is <see cref="Adapters.CatalogFiles"/>'s. ISO/IEC 27001 and the CIS Controls come this way: their texts are licensed, and not the server's to carry.</remarks>
+    public string? ComplianceCatalogs { get; set; }
+
     /// <summary>Seconds one scan gets, every check included.</summary>
     public int ScanSeconds { get; set; } = 900;
 

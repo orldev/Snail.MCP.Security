@@ -45,7 +45,8 @@ public sealed class SecurityOptionsValidationTests
         { new SecurityOptions { SiteRequestsPerSecond = 0 }, "SNAIL_MCP_SECURITY_SITE_REQUESTS_PER_SECOND" },
         { new SecurityOptions { SitePacketsPerSecond = -5 }, "SNAIL_MCP_SECURITY_SITE_PACKETS_PER_SECOND" },
         { new SecurityOptions { NucleiTemplates = "http://example.com/t.tgz" }, "SNAIL_MCP_SECURITY_NUCLEI_TEMPLATES" },
-        { new SecurityOptions { NucleiTemplatesSha256 = "abc" }, "SNAIL_MCP_SECURITY_NUCLEI_TEMPLATES_SHA256" }
+        { new SecurityOptions { NucleiTemplatesSha256 = "abc" }, "SNAIL_MCP_SECURITY_NUCLEI_TEMPLATES_SHA256" },
+        { new SecurityOptions { ComplianceCatalogs = "/no/such/catalogs" }, "SNAIL_MCP_SECURITY_COMPLIANCE_CATALOGS" }
     };
 
     [Theory]

@@ -16,7 +16,7 @@ namespace Snail.MCP.Security.Tools;
 /// secrets and weak spots of that task's copy. Another task's client reads the scan's job as if it did not exist.
 /// </para>
 /// </remarks>
-public sealed class ScanJobs(Jobs jobs, Scans scans, IOptions<SecurityOptions> options)
+public sealed class ScanJobs(Jobs jobs, Scans scans, IOptions<SecurityOptions> options, Compliance compliance)
 {
     /// <summary>The kind of job a scan is, the second part of its resource's address.</summary>
     public const string Kind = "scan";
@@ -35,7 +35,7 @@ public sealed class ScanJobs(Jobs jobs, Scans scans, IOptions<SecurityOptions> o
                 return running;
 
             int shown = options.Value.ShownFindings;
-            var job = jobs.Start(Kind, request.Copy.Task, async (_, token) => AnswerFields.Of(await scans.RunAsync(request, token), shown), ToolAnswer.ObjectInfo);
+            var job = jobs.Start(Kind, request.Copy.Task, async (_, token) => AnswerFields.Of(await scans.RunAsync(request, token), shown, compliance), ToolAnswer.ObjectInfo);
 
             _running[key] = job;
             _ = ForgetAsync(key, job);

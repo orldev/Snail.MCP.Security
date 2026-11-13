@@ -1,0 +1,40 @@
+{
+  "id": "ens",
+  "name": "Esquema Nacional de Seguridad",
+  "source": "Real Decreto 311/2022, Anexo II, texto consolidado del BOE (BOE-A-2022-7191)",
+  "checked": "2026-10-15",
+  "titled": true,
+  "notes": [
+    "op.acc.5 and op.acc.6 are written for the authentication of people; a token or a cloud key in code is a machine's credential, placed under them by interpretation.",
+    "A cryptographic key in the files adds op.exp.10.",
+    "A site's findings fall under the measures of communications (mp.com) and of web services and e-mail (mp.s.1, mp.s.2); open services under configuration, maintenance and the secure perimeter."
+  ],
+  "references": [
+    { "code": "op.acc.5", "title": "Mecanismo de autenticación (usuarios externos)" },
+    { "code": "op.acc.6", "title": "Mecanismo de autenticación (usuarios de la organización)" },
+    { "code": "op.exp.2", "title": "Configuración de seguridad" },
+    { "code": "op.exp.3", "title": "Gestión de la configuración de seguridad" },
+    { "code": "op.exp.4", "title": "Mantenimiento y actualizaciones de seguridad" },
+    { "code": "op.exp.10", "title": "Protección de claves criptográficas" },
+    { "code": "op.ext.3", "title": "Protección de la cadena de suministro" },
+    { "code": "mp.com.1", "title": "Perímetro seguro" },
+    { "code": "mp.com.2", "title": "Protección de la confidencialidad" },
+    { "code": "mp.com.3", "title": "Protección de la integridad y de la autenticidad" },
+    { "code": "mp.s.1", "title": "Protección del correo electrónico" },
+    { "code": "mp.s.2", "title": "Protección de servicios y aplicaciones web" },
+    { "code": "mp.sw.1", "title": "Desarrollo de aplicaciones" },
+    { "code": "mp.sw.2", "title": "Aceptación y puesta en servicio" }
+  ],
+  "checks": [
+    { "check": "packages", "references": [ "op.exp.4", "op.ext.3" ] },
+    { "check": "secrets", "ruleContains": "private-key", "references": [ "op.acc.6", "op.acc.5", "op.exp.10" ] },
+    { "check": "secrets", "references": [ "op.acc.6", "op.acc.5" ] },
+    { "check": "config", "references": [ "op.exp.2", "op.exp.3" ] },
+    { "check": "code", "references": [ "mp.sw.1", "mp.sw.2" ] },
+    { "check": "tls", "references": [ "mp.com.2", "mp.com.3", "mp.s.2" ] },
+    { "check": "headers", "references": [ "mp.s.2", "op.exp.2" ] },
+    { "check": "mail", "references": [ "mp.s.1" ] },
+    { "check": "exposure", "references": [ "mp.s.2", "op.exp.2" ] },
+    { "check": "services", "references": [ "op.exp.2", "op.exp.4", "mp.com.1" ] }
+  ]
+}

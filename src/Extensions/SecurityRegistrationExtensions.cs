@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using Snail.MCP.Security.Adapters;
 using Snail.MCP.Security.Application;
 using Snail.MCP.Security.Application.Ports;
@@ -32,6 +33,15 @@ public static class SecurityRegistrationExtensions
             services.AddSingleton<Scans>();
             services.AddNomad(nomad => nomad.Address = settings[nameof(SecurityOptions.NomadAddress)] ?? new SecurityOptions().NomadAddress);
             services.AddHostedService<EgressProxy>();
+
+            return services;
+        }
+
+        /// <summary>The compliance catalogs every finding is placed in: the built-in ENS and NIS2, with the operator's folder of others.</summary>
+        /// <remarks>Read once, when first asked for, after the settings' check has refused a start with a catalog that is not one.</remarks>
+        public IServiceCollection AddCompliance()
+        {
+            services.AddSingleton(provider => CatalogFiles.Read(provider.GetRequiredService<IOptions<SecurityOptions>>().Value.ComplianceCatalogs));
 
             return services;
         }

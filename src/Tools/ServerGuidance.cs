@@ -8,7 +8,8 @@ public static class ServerGuidance
         """
         This server checks the task's working copy for security problems: vulnerable packages, secrets in files, insecure
         container and infrastructure settings, and insecure code. Every finding names the ENS measures and NIS2 letters
-        it falls under.
+        it falls under, and the references of any other compliance catalog this server was given, in a field named after
+        it; they are a reference for the human, not a certification.
 
         Start with security_scan. It answers with the scan's job: the scan itself in result when it ended within the wait,
         or the running job, whose resource carries the scan once it ends. Fix what the scan says blocks the work — critical

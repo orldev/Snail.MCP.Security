@@ -15,7 +15,7 @@ namespace Snail.MCP.Security.Tools;
 /// security_findings reads it. Asked for again while it runs, the same scan is joined rather than started twice.
 /// </remarks>
 [McpServerToolType]
-public sealed class SecurityTools(Scans scans, ScanJobs running)
+public sealed class SecurityTools(Scans scans, ScanJobs running, Compliance compliance)
 {
     /// <summary>Scans the working copy as a job.</summary>
     [McpServerTool(Name = "security_scan", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
@@ -47,5 +47,5 @@ public sealed class SecurityTools(Scans scans, ScanJobs running)
         [Description(ToolDescriptions.FindingsOffset)] int offset = 0,
         [Description(ToolDescriptions.FindingsLimit)] int? limit = null,
         CancellationToken cancellationToken = default) =>
-        ToolAnswer.From(await scans.FindingsAsync(severity, check, offset, limit, cancellationToken), AnswerFields.Of);
+        ToolAnswer.From(await scans.FindingsAsync(severity, check, offset, limit, cancellationToken), page => AnswerFields.Of(page, compliance));
 }

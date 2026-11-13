@@ -14,7 +14,7 @@ namespace Snail.MCP.Security.Tools;
 /// one, and to the site otherwise: no other task's client reads it by its address, nor is answered with it when it asks
 /// for the same site.
 /// </remarks>
-public sealed class SiteJobs(Jobs jobs, Sites sites, IOptions<SecurityOptions> options, TimeProvider clock)
+public sealed class SiteJobs(Jobs jobs, Sites sites, IOptions<SecurityOptions> options, TimeProvider clock, Compliance compliance)
 {
     /// <summary>The kind of job a site scan is, the second part of its resource's address.</summary>
     public const string Kind = "site";
@@ -37,7 +37,7 @@ public sealed class SiteJobs(Jobs jobs, Sites sites, IOptions<SecurityOptions> o
                 return known;
 
             int shown = options.Value.ShownFindings;
-            var job = jobs.Start(Kind, owner, async (_, token) => AnswerFields.Of(await sites.RunAsync(plan, token), shown), ToolAnswer.ObjectInfo);
+            var job = jobs.Start(Kind, owner, async (_, token) => AnswerFields.Of(await sites.RunAsync(plan, token), shown, compliance), ToolAnswer.ObjectInfo);
 
             _known[key] = job;
 

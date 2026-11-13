@@ -23,6 +23,12 @@
     <PackageReference Include="Snail.Toolkit.Nomad" />
   </ItemGroup>
 
+  <!-- The compliance catalogs the server carries, read from its assembly: built in, never beside it where a deployment could lose one. -->
+  <ItemGroup>
+    <Content Remove="Catalogs/*.json" />
+    <EmbeddedResource Include="Catalogs/*.json" LogicalName="Catalogs.%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="Snail.MCP.Security.Tests" />
     <InternalsVisibleTo Include="Snail.MCP.Security.Benchmarks" />

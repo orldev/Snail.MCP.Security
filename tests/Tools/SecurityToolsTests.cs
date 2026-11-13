@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using Snail.MCP.Security.Adapters;
 using Snail.MCP.Security.Application;
 using Snail.MCP.Security.Configuration;
 using Snail.MCP.Security.Tests.Application;
@@ -18,7 +19,9 @@ public sealed class SecurityToolsTests
         var options = Options.Create(new SecurityOptions());
         var scans = new Scans(new SessionCopy(address, options), scanner, new MemoryHistory(), options, TimeProvider.System);
 
-        return new SecurityTools(scans, new ScanJobs(jobs ?? new Jobs(SecuritySettings.Name), scans, options));
+        var compliance = CatalogFiles.Read(null);
+
+        return new SecurityTools(scans, new ScanJobs(jobs ?? new Jobs(SecuritySettings.Name), scans, options, compliance), compliance);
     }
 
     [Fact]
