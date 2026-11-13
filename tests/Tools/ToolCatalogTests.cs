@@ -23,7 +23,7 @@ public sealed partial class ToolCatalogTests
     [Fact]
     public void Tools_EveryOne_IsNamedForThisServer()
     {
-        Assert.Equal(["security_diagnose", "security_findings", "security_scan"], Tools().Order(StringComparer.Ordinal));
+        Assert.Equal(["security_diagnose", "security_findings", "security_scan", "security_site_prove", "security_site_scan"], Tools().Order(StringComparer.Ordinal));
     }
 
     [Fact]
@@ -31,6 +31,13 @@ public sealed partial class ToolCatalogTests
     {
         foreach (var check in Checks.Copy)
             Assert.Contains(ToolAnswer.Word(check), Words(ToolDescriptions.Checks));
+    }
+
+    [Fact]
+    public void SiteChecks_EveryCheckOfASite_IsNamed()
+    {
+        foreach (var check in Checks.Site)
+            Assert.Contains(ToolAnswer.Word(check), Words(ToolDescriptions.SiteChecks));
     }
 
     [Fact]
@@ -48,6 +55,8 @@ public sealed partial class ToolCatalogTests
     [InlineData(ToolDescriptions.Findings, nameof(SecurityOptions.MaxPage))]
     [InlineData(ToolDescriptions.FindingsLimit, nameof(SecurityOptions.ShownFindings))]
     [InlineData(ToolDescriptions.FindingsLimit, nameof(SecurityOptions.MaxPage))]
+    [InlineData(ToolDescriptions.SiteScan, nameof(SecurityOptions.ShownFindings))]
+    [InlineData(ToolDescriptions.SiteScan, nameof(SecurityOptions.ScanSeconds))]
     public void Description_NumberItNames_IsTheDefault(string description, string option)
     {
         object? value = typeof(SecurityOptions).GetProperty(option)!.GetValue(Defaults);

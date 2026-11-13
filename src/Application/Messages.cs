@@ -83,6 +83,10 @@ public static class Messages
     public static string KeyRefused(string refusal) =>
         $"{refusal} A new key changes every site's ownership code: every customer who proved a domain would publish its TXT record again.";
 
+    /// <summary>A site proven the customer's.</summary>
+    public static string Proven(string host, string domain) =>
+        host == domain ? $"{host} is proven yours by its own record." : $"{host} is proven yours by the record of {domain}, which covers its subdomains.";
+
     /// <summary>A site with no check yet.</summary>
     public const string SiteNotScanned = "This site has no check yet.";
 

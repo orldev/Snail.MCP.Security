@@ -1,6 +1,7 @@
 {
   "families": [
     { "type": "SecurityTools", "slug": "scans", "title": "Scans" },
+    { "type": "SiteTools", "slug": "sites", "title": "Sites" },
     { "type": "DiagnosticsTools", "slug": "diagnostics", "title": "Diagnostics" }
   ]
 }

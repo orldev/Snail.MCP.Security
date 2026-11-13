@@ -56,6 +56,36 @@ public sealed class SecurityOptions
         "api.nuget.org", "globalcdn.nuget.org", "www.nuget.org"
     ];
 
+    /// <summary>Docker network the site scanners run in: one that reaches the internet, never the internal network of the copy scanners.</summary>
+    /// <remarks>
+    /// A site scanner has to reach the customer's site, which the egress proxy cannot carry: nmap speaks TCP, not HTTP.
+    /// What keeps it off private networks is the server — it hands nmap only addresses it checked are public, and runs
+    /// Nuclei with -lna — and, on the stand, a firewall on this network that drops private destinations.
+    /// </remarks>
+    public string SiteNetwork { get; set; } = "s3l-security-sites";
+
+    /// <summary>nmap, which finds a site's open ports, the services behind them and its TLS.</summary>
+    public string NmapImage { get; set; } = "instrumentisto/nmap:7.98@sha256:96f6ed194519b62421a1a1c57809e65a7f94d2aa1c8c25676f247e5e148c0827";
+
+    /// <summary>Nuclei, which checks a site's TLS, its security headers and what it exposes, with the templates below.</summary>
+    public string NucleiImage { get; set; } = "projectdiscovery/nuclei:v3.11.1@sha256:582d5546902e67052097cb2d07296c642d50a1afc5e44623cb038845df9a32eb";
+
+    /// <summary>The Nuclei templates, as a release archive: a fixed version, never the moving latest Nuclei fetches by itself.</summary>
+    public string NucleiTemplates { get; set; } = "https://codeload.github.com/projectdiscovery/nuclei-templates/tar.gz/refs/tags/v10.5.0";
+
+    /// <summary>The SHA-256 of <see cref="NucleiTemplates"/>: an archive with any other digest is not unpacked and the checks it serves do not run.</summary>
+    public string NucleiTemplatesSha256 { get; set; } = "80fbabceca095fac40afecc7f023748df22b9576b9ff10a4422bd2fbf81f9a41";
+
+    /// <summary>The ports nmap looks at: the web's, remote access, mail, file sharing, databases, caches, queues, Docker and Kubernetes.</summary>
+    /// <remarks>A list rather than nmap's top ports: Redis (6379), MongoDB (27017) and Elasticsearch (9200), the services least meant to face the internet, are not among nmap's top thousand.</remarks>
+    public string SitePorts { get; set; } = "21,22,23,25,53,80,110,111,135,139,143,389,443,445,465,587,993,995,1433,1521,2049,2375,2376,3000,3306,3389,5000,5432,5601,5672,5900,5984,6379,6443,8000,8080,8081,8443,8888,9000,9090,9200,9300,10250,11211,15672,27017";
+
+    /// <summary>Requests a second Nuclei sends a site at most: far from anything that could slow it down.</summary>
+    public int SiteRequestsPerSecond { get; set; } = 30;
+
+    /// <summary>Packets a second nmap sends a site at most.</summary>
+    public int SitePacketsPerSecond { get; set; } = 50;
+
     /// <summary>Seconds one scan gets, every check included.</summary>
     public int ScanSeconds { get; set; } = 900;
 

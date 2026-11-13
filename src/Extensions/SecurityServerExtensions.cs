@@ -51,7 +51,9 @@ public static class SecurityServerExtensions
             builder.Services.AddSingleton<IValidateOptions<SecurityOptions>, SecurityOptionsValidation>();
 
             builder.Services.AddScans(settings);
+            builder.Services.AddSites();
             builder.Services.AddSingleton<ScanJobs>();
+            builder.Services.AddSingleton<SiteJobs>();
 
             builder.Services
                 .AddMcpServer(options =>
@@ -64,6 +66,7 @@ public static class SecurityServerExtensions
                 .WithSessionGrant()
                 .WithArgumentCheck()
                 .WithTools<SecurityTools>()
+                .WithTools<SiteTools>()
                 .WithTools<DiagnosticsTools>()
                 .WithJobs(SecuritySettings.Name, JobOwners.TaskOfCopy(WorkspacesOf, SessionCopy.IsTaskId));
 

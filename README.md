@@ -1,6 +1,6 @@
 # Snail.MCP.Security
 
-Security checks of a working copy: packages, secrets, config and code, mapped to ENS and NIS2
+Security checks of a working copy and of a proven site, mapped to ENS and NIS2
 
 Its tools: [docs/reference/tools](docs/reference/tools/index.md), written from the server itself. Built on
 [Snail.Sdk](https://github.com/orldev/Snail.Sdk): the rules, the dotnet tool package, publishing into `~/.s3l-mcp`, the

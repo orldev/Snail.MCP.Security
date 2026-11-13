@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/bin/../share/nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.98 scan initiated Thu Nov 12 23:49:44 2026 as: nmap -Pn -sV -&#45;version-intensity 5 -p 21,22,23,25,53,80,110,111,135,139,143,389,443,445,465,587,993,995,1433,1521,2049,2375,2376,3000,3306,3389,5000,5432,5601,5672,5900,5984,6379,6443,8000,8080,8081,8443,8888,9000,9090,9200,9300,10250,11211,15672,27017 -T3 -&#45;max-rate 50 -&#45;script ssl-cert,ssl-enum-ciphers,http-security-headers,http-server-header,ssh2-enum-algos,smtp-commands -&#45;script-args tls.servername=shop.test -oX /tmp/nmap.xml 192.168.107.2 -->
+<nmaprun scanner="nmap" args="nmap -Pn -sV -&#45;version-intensity 5 -p 21,22,23,25,53,80,110,111,135,139,143,389,443,445,465,587,993,995,1433,1521,2049,2375,2376,3000,3306,3389,5000,5432,5601,5672,5900,5984,6379,6443,8000,8080,8081,8443,8888,9000,9090,9200,9300,10250,11211,15672,27017 -T3 -&#45;max-rate 50 -&#45;script ssl-cert,ssl-enum-ciphers,http-security-headers,http-server-header,ssh2-enum-algos,smtp-commands -&#45;script-args tls.servername=shop.test -oX /tmp/nmap.xml 192.168.107.2" start="1794527384" startstr="Thu Nov 12 23:49:44 2026" version="7.98" xmloutputversion="1.05">
+<scaninfo type="syn" protocol="tcp" numservices="47" services="21-23,25,53,80,110-111,135,139,143,389,443,445,465,587,993,995,1433,1521,2049,2375-2376,3000,3306,3389,5000,5432,5601,5672,5900,5984,6379,6443,8000,8080-8081,8443,8888,9000,9090,9200,9300,10250,11211,15672,27017"/>
+<verbose level="0"/>
+<debugging level="0"/>
+<hosthint><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.107.2" addrtype="ipv4"/>
+<address addr="6E:E1:BD:EA:34:9B" addrtype="mac"/>
+<hostnames>
+</hostnames>
+</hosthint>
+<host starttime="1794527385" endtime="1794527398"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.107.2" addrtype="ipv4"/>
+<address addr="6E:E1:BD:EA:34:9B" addrtype="mac"/>
+<hostnames>
+<hostname name="s3l-sitecheck-target.s3l-sitecheck" type="PTR"/>
+</hostnames>
+<ports><extraports state="closed" count="44">
+<extrareasons reason="reset" count="44" proto="tcp" ports="21-23,25,53,110-111,135,139,143,389,445,465,587,993,995,1433,1521,2049,2375-2376,3000,3306,3389,5000,5432,5601,5672,5900,5984,6443,8000,8080-8081,8443,8888,9000,9090,9200,9300,10250,11211,15672,27017"/>
+</extraports>
+<port protocol="tcp" portid="80"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="http" product="nginx" version="1.27.5" method="probed" conf="10"><cpe>cpe:/a:igor_sysoev:nginx:1.27.5</cpe></service><script id="http-security-headers" output=""></script><script id="http-server-header" output="nginx/1.27.5"><elem>nginx/1.27.5</elem>
+</script></port>
+<port protocol="tcp" portid="443"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="http" product="nginx" version="1.27.5" tunnel="ssl" method="probed" conf="10"><cpe>cpe:/a:igor_sysoev:nginx:1.27.5</cpe></service><script id="http-security-headers" output="&#xa;  Strict_Transport_Security: &#xa;    HSTS not configured in HTTPS Server"><table key="Strict_Transport_Security">
+<elem>HSTS not configured in HTTPS Server</elem>
+</table>
+</script><script id="ssl-cert" output="Subject: commonName=shop.test&#xa;Issuer: commonName=shop.test&#xa;Public Key type: rsa&#xa;Public Key bits: 2048&#xa;Signature Algorithm: sha256WithRSAEncryption&#xa;Not valid before: 2026-11-12T23:48:19&#xa;Not valid after:  2026-11-13T23:48:19&#xa;MD5:     627f 1f93 b6d2 6546 ddba 7b01 1b65 feab&#xa;SHA-1:   313b ad05 2230 3097 19a1 368e c6c3 bb18 197d 0021&#xa;SHA-256: c6f8 d282 f567 338e 3eba 8f7f 6873 a6df e529 a5fa 6ff9 ca67 b9ee d2f2 cd88 e190"><table key="subject">
+<elem key="commonName">shop.test</elem>
+</table>
+<table key="issuer">
+<elem key="commonName">shop.test</elem>
+</table>
+<table key="pubkey">
+<elem key="type">rsa</elem>
+<elem key="bits">2048</elem>
+<elem key="modulus">C11C641B73C53902C7C6068B86D041C0EABE48857271618E24D1CBFEEC05FD93AE9782645CB6CD69E3B775DC49F756C9A36FE8E88F1E538A8D825904315D24507A23E9939E2685C320A12349CCE46B481607F203E421FC37F375E7D4015877D0D88BBA28A36AB55D8C5DE58D74BD860DD0A22042F191E60D02EDCF3162EBA8363ABD4B4AA0A530CCCC21C9545628CAD24BF99222C7EA7DB91AEA8DD717EB2FD23F600AB2638055FDEF0763B9B56459050C3ED487BB517D36FE80920BA0EA92814970AD2FF7FAE5AB4C50E9072AABAF80340A844D5371E1AE4BA43B47A625D4FF7221BB2B5C90D950C502D290FD99D7C6838DAF986A55E315EF16D5E170F4BE41</elem>
+<elem key="exponent">65537</elem>
+</table>
+<table key="extensions">
+<table>
+<elem key="name">X509v3 Subject Key Identifier</elem>
+<elem key="value">DF:B2:25:BF:55:2A:1D:FD:6D:55:71:92:7E:CA:E4:BF:37:CB:AC:DC</elem>
+</table>
+<table>
+<elem key="name">X509v3 Authority Key Identifier</elem>
+<elem key="value">DF:B2:25:BF:55:2A:1D:FD:6D:55:71:92:7E:CA:E4:BF:37:CB:AC:DC</elem>
+</table>
+<table>
+<elem key="name">X509v3 Basic Constraints</elem>
+<elem key="value">CA:TRUE</elem>
+<elem key="critical">true</elem>
+</table>
+</table>
+<elem key="sig_algo">sha256WithRSAEncryption</elem>
+<table key="validity">
+<elem key="notBefore">2026-11-12T23:48:19</elem>
+<elem key="notAfter">2026-11-13T23:48:19</elem>
+</table>
+<elem key="md5">627f1f93b6d26546ddba7b011b65feab</elem>
+<elem key="sha1">313bad052230309719a1368ec6c3bb18197d0021</elem>
+<elem key="sha256">c6f8d282f567338e3eba8f7f6873a6dfe529a5fa6ff9ca67b9eed2f2cd88e190</elem>
+<elem key="pem">-&#45;&#45;&#45;&#45;BEGIN CERTIFICATE-&#45;&#45;&#45;&#45;&#xa;MIIDCTCCAfGgAwIBAgIUdEfwgjBmYlUwse6j0dZzlkidkdcwDQYJKoZIhvcNAQEL&#xa;BQAwFDESMBAGA1UEAwwJc2hvcC50ZXN0MB4XDTI2MTExMjIzNDgxOVoXDTI2MTEx&#xa;MzIzNDgxOVowFDESMBAGA1UEAwwJc2hvcC50ZXN0MIIBIjANBgkqhkiG9w0BAQEF&#xa;AAOCAQ8AMIIBCgKCAQEAwRxkG3PFOQLHxgaLhtBBwOq+SIVycWGOJNHL/uwF/ZOu&#xa;l4JkXLbNaeO3ddxJ91bJo2/o6I8eU4qNglkEMV0kUHoj6ZOeJoXDIKEjSczka0gW&#xa;B/ID5CH8N/N159QBWHfQ2Iu6KKNqtV2MXeWNdL2GDdCiIELxkeYNAu3PMWLrqDY6&#xa;vUtKoKUwzMwhyVRWKMrSS/mSIsfqfbka6o3XF+sv0j9gCrJjgFX97wdjubVkWQUM&#xa;PtSHu1F9Nv6Akgug6pKBSXCtL/f65atMUOkHKquvgDQKhE1TceGuS6Q7R6Yl1P9y&#xa;IbsrXJDZUMUC0pD9mdfGg42vmGpV4xXvFtXhcPS+QQIDAQABo1MwUTAdBgNVHQ4E&#xa;FgQU37Ilv1UqHf1tVXGSfsrkvzfLrNwwHwYDVR0jBBgwFoAU37Ilv1UqHf1tVXGS&#xa;fsrkvzfLrNwwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAr55g&#xa;YP8K//FFWWDPFPm7OhIG8shp+u4XtaMMCMjo/pwgdBolHA/pr9iIeTnu75mcszDm&#xa;cSnBgilRlh5wbiHXTWOvyLEzxHhKW5xiO1VDAA2VgrpmYEsrJpOxLNREIxS9PkH3&#xa;ZY5wQodEV/G5g0BHxxs026NaxRR2v4ls1x5n9s3VrHHTIDSyhKRzz+/pd5YwxwcN&#xa;YqRVjg7Fmlu2t5elmRbD83HlvqIYJS+2sw2PVRG7ojpTWA3HYc6Rm0SRSUrDHuHP&#xa;xASrhvdHe7rox9JvErLpgTgoQ0WAb+I1wx7qbLMGqvfMAjM64M+VKTAjorCU18Mg&#xa;qav76/cXdoB5BijH5A==&#xa;-&#45;&#45;&#45;&#45;END CERTIFICATE-&#45;&#45;&#45;&#45;&#xa;</elem>
+</script><script id="http-server-header" output="nginx/1.27.5"><elem>nginx/1.27.5</elem>
+</script><script id="ssl-enum-ciphers" output="&#xa;  TLSv1.2: &#xa;    ciphers: &#xa;      TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA (secp256r1) - A&#xa;      TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256 (secp256r1) - A&#xa;      TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 (secp256r1) - A&#xa;      TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA (secp256r1) - A&#xa;      TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384 (secp256r1) - A&#xa;      TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 (secp256r1) - A&#xa;      TLS_ECDHE_RSA_WITH_ARIA_128_GCM_SHA256 (secp256r1) - A&#xa;      TLS_ECDHE_RSA_WITH_ARIA_256_GCM_SHA384 (secp256r1) - A&#xa;      TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 (secp256r1) - A&#xa;      TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384 (secp256r1) - A&#xa;      TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 (secp256r1) - A&#xa;      TLS_RSA_WITH_AES_128_CBC_SHA (rsa 2048) - A&#xa;      TLS_RSA_WITH_AES_128_CBC_SHA256 (rsa 2048) - A&#xa;      TLS_RSA_WITH_AES_128_CCM (rsa 2048) - A&#xa;      TLS_RSA_WITH_AES_128_GCM_SHA256 (rsa 2048) - A&#xa;      TLS_RSA_WITH_AES_256_CBC_SHA (rsa 2048) - A&#xa;      TLS_RSA_WITH_AES_256_CBC_SHA256 (rsa 2048) - A&#xa;      TLS_RSA_WITH_AES_256_CCM (rsa 2048) - A&#xa;      TLS_RSA_WITH_AES_256_GCM_SHA384 (rsa 2048) - A&#xa;      TLS_RSA_WITH_ARIA_128_GCM_SHA256 (rsa 2048) - A&#xa;      TLS_RSA_WITH_ARIA_256_GCM_SHA384 (rsa 2048) - A&#xa;      TLS_RSA_WITH_CAMELLIA_128_CBC_SHA (rsa 2048) - A&#xa;      TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256 (rsa 2048) - A&#xa;      TLS_RSA_WITH_CAMELLIA_256_CBC_SHA (rsa 2048) - A&#xa;      TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256 (rsa 2048) - A&#xa;    compressors: &#xa;      NULL&#xa;    cipher preference: client&#xa;  TLSv1.3: &#xa;    ciphers: &#xa;      TLS_AKE_WITH_AES_128_GCM_SHA256 (ecdh_x25519) - A&#xa;      TLS_AKE_WITH_AES_256_GCM_SHA384 (ecdh_x25519) - A&#xa;      TLS_AKE_WITH_CHACHA20_POLY1305_SHA256 (ecdh_x25519) - A&#xa;    cipher preference: client&#xa;  least strength: A"><table key="TLSv1.2">
+<table key="ciphers">
+<table>
+<elem key="name">TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA</elem>
+<elem key="kex_info">secp256r1</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256</elem>
+<elem key="kex_info">secp256r1</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</elem>
+<elem key="kex_info">secp256r1</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA</elem>
+<elem key="kex_info">secp256r1</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384</elem>
+<elem key="kex_info">secp256r1</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</elem>
+<elem key="kex_info">secp256r1</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_ECDHE_RSA_WITH_ARIA_128_GCM_SHA256</elem>
+<elem key="kex_info">secp256r1</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_ECDHE_RSA_WITH_ARIA_256_GCM_SHA384</elem>
+<elem key="kex_info">secp256r1</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256</elem>
+<elem key="kex_info">secp256r1</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384</elem>
+<elem key="kex_info">secp256r1</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256</elem>
+<elem key="kex_info">secp256r1</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_RSA_WITH_AES_128_CBC_SHA</elem>
+<elem key="kex_info">rsa 2048</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_RSA_WITH_AES_128_CBC_SHA256</elem>
+<elem key="kex_info">rsa 2048</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_RSA_WITH_AES_128_CCM</elem>
+<elem key="kex_info">rsa 2048</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_RSA_WITH_AES_128_GCM_SHA256</elem>
+<elem key="kex_info">rsa 2048</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_RSA_WITH_AES_256_CBC_SHA</elem>
+<elem key="kex_info">rsa 2048</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_RSA_WITH_AES_256_CBC_SHA256</elem>
+<elem key="kex_info">rsa 2048</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_RSA_WITH_AES_256_CCM</elem>
+<elem key="kex_info">rsa 2048</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_RSA_WITH_AES_256_GCM_SHA384</elem>
+<elem key="kex_info">rsa 2048</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_RSA_WITH_ARIA_128_GCM_SHA256</elem>
+<elem key="kex_info">rsa 2048</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_RSA_WITH_ARIA_256_GCM_SHA384</elem>
+<elem key="kex_info">rsa 2048</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_RSA_WITH_CAMELLIA_128_CBC_SHA</elem>
+<elem key="kex_info">rsa 2048</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256</elem>
+<elem key="kex_info">rsa 2048</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_RSA_WITH_CAMELLIA_256_CBC_SHA</elem>
+<elem key="kex_info">rsa 2048</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256</elem>
+<elem key="kex_info">rsa 2048</elem>
+<elem key="strength">A</elem>
+</table>
+</table>
+<table key="compressors">
+<elem>NULL</elem>
+</table>
+<elem key="cipher preference">client</elem>
+</table>
+<table key="TLSv1.3">
+<table key="ciphers">
+<table>
+<elem key="name">TLS_AKE_WITH_AES_128_GCM_SHA256</elem>
+<elem key="kex_info">ecdh_x25519</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_AKE_WITH_AES_256_GCM_SHA384</elem>
+<elem key="kex_info">ecdh_x25519</elem>
+<elem key="strength">A</elem>
+</table>
+<table>
+<elem key="name">TLS_AKE_WITH_CHACHA20_POLY1305_SHA256</elem>
+<elem key="kex_info">ecdh_x25519</elem>
+<elem key="strength">A</elem>
+</table>
+</table>
+<elem key="cipher preference">client</elem>
+</table>
+<elem key="least strength">A</elem>
+</script></port>
+<port protocol="tcp" portid="6379"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="redis" product="Redis key-value store" version="7.4.12" method="probed" conf="10"><cpe>cpe:/a:redislabs:redis:7.4.12</cpe></service></port>
+</ports>
+<times srtt="40" rttvar="5" to="100000"/>
+</host>
+<runstats><finished time="1794527398" timestr="Thu Nov 12 23:49:58 2026" summary="Nmap done at Thu Nov 12 23:49:58 2026; 1 IP address (1 host up) scanned in 13.18 seconds" elapsed="13.18" exit="success"/><hosts up="1" down="0" total="1"/>
+</runstats>
+</nmaprun>

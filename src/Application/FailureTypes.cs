@@ -18,4 +18,10 @@ public static class FailureTypes
 
     /// <summary>No record proves the site is the customer's.</summary>
     public const string NotProven = "notProven";
+
+    /// <summary>The site resolves to an address that is not public: no scanner goes there.</summary>
+    public const string NotPublic = "notPublic";
+
+    /// <summary>The site has no address in the public DNS, so there is nothing to reach.</summary>
+    public const string Unresolved = "unresolved";
 }

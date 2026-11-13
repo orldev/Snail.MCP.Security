@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Snail.MCP.Security.Adapters;
 using Snail.MCP.Security.Application;
 using Snail.MCP.Security.Application.Ports;
@@ -23,6 +24,7 @@ public static class SecurityRegistrationExtensions
         {
             services.AddSingleton(TimeProvider.System);
             services.AddSingleton<SessionCopy>();
+            services.TryAddSingleton<NomadBatch>();
             services.AddSingleton<IScanner, NomadScanner>();
             services.AddSingleton<IScanHistory>(_ => FileScanHistory.InDataFolder());
             services.AddSingleton<IFixes, NuGetFixes>();
@@ -30,6 +32,25 @@ public static class SecurityRegistrationExtensions
             services.AddSingleton<Scans>();
             services.AddNomad(nomad => nomad.Address = settings[nameof(SecurityOptions.NomadAddress)] ?? new SecurityOptions().NomadAddress);
             services.AddHostedService<EgressProxy>();
+
+            return services;
+        }
+
+        /// <summary>The sites feature: the ownership proof, the site scanners through Nomad, and the checks of a site's public DNS.</summary>
+        /// <remarks>
+        /// The ownership key is read on first use, not at the start: a broken key file refuses the site tools in the
+        /// SDK's words while the scans of copies go on.
+        /// </remarks>
+        public IServiceCollection AddSites()
+        {
+            services.TryAddSingleton(TimeProvider.System);
+            services.AddHttpClient(DohDns.Client, client => client.Timeout = TimeSpan.FromSeconds(10));
+            services.AddSingleton<ISiteDns, DohDns>();
+            services.AddSingleton<IProofKey>(_ => FileProofKey.InDataFolder());
+            services.AddSingleton<Ownership>();
+            services.TryAddSingleton<NomadBatch>();
+            services.AddSingleton<ISiteScanner, NomadSiteScanner>();
+            services.AddSingleton<Sites>();
 
             return services;
         }

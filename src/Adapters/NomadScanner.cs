@@ -1,4 +1,3 @@
-using System.Net;
 using Microsoft.Extensions.Options;
 using Snail.MCP.Security.Application;
 using Snail.MCP.Security.Application.Ports;
@@ -15,15 +14,10 @@ namespace Snail.MCP.Security.Adapters;
 /// cache volume is shared. A scanner that failed, or printed something other than its JSON, makes its checks
 /// «did not run», with the end of what it said — a scan that skipped a check proves nothing about it.
 /// </remarks>
-public sealed class NomadScanner(INomadClient nomad, IFixes fixes, IOptions<SecurityOptions> options, TimeProvider clock) : IScanner, IDisposable
+public sealed class NomadScanner(INomadClient nomad, NomadBatch batch, IFixes fixes, IOptions<SecurityOptions> options) : IScanner, IDisposable
 {
-    /// <summary>How often a running scan is looked at.</summary>
-    private static readonly TimeSpan Poll = TimeSpan.FromSeconds(2);
-
     /// <summary>Bytes of a scanner's standard error kept for a check that did not run.</summary>
     private const int ReasonBytes = 2048;
-
-    private static readonly string[] Ended = ["complete", "failed", "lost"];
 
     private readonly SemaphoreSlim _gate = new(1, 1);
 
@@ -57,54 +51,19 @@ public sealed class NomadScanner(INomadClient nomad, IFixes fixes, IOptions<Secu
     /// <summary>Releases the gate.</summary>
     public void Dispose() => _gate.Dispose();
 
-    /// <summary>Runs the scan's job and reads what it left; a job the scan gives up on is stopped, whatever made it give up.</summary>
-    /// <remarks>
-    /// A client that went away cancelled the wait and left the scanners reading the copy for the rest of the scan time; and
-    /// Nomad refusing the job escaped as an exception, which a client sees as a bare "an error occurred". Now a cancelled
-    /// scan stops its job before it ends, and a scheduler failure is every check not run, with Nomad's own words.
-    /// </remarks>
+    /// <summary>Runs the scan's job and reads what it left; a job the scan gives up on is stopped, whatever made it give up (<see cref="NomadBatch"/>).</summary>
     private async Task<ScanOutcome> RunAsync(WorkspacePlace<string> copy, IReadOnlyCollection<Check> checks, CancellationToken cancellationToken)
     {
         string run = Guid.NewGuid().ToString("N");
-        string job = ScanJob.Of(copy.Task);
+        var ended = await batch.RunAsync(ScanJob.Of(copy.Task), ScannerJob.Of(copy, checks, run, options.Value), TimeSpan.FromSeconds(options.Value.ScanSeconds), cancellationToken);
 
-        try
-        {
-            await nomad.StopJobAsync(job, purge: true, cancellationToken);
-            await nomad.RegisterJobAsync(ScannerJob.Of(copy, checks, run, options.Value), cancellationToken);
+        if (ended.Ended is { } allocation)
+            return await ReadAsync(copy, checks, run, allocation, cancellationToken);
 
-            var allocation = await EndedAsync(job, cancellationToken);
-            if (allocation is not null)
-                return await ReadAsync(copy, checks, run, allocation, cancellationToken);
+        if (ended.Refused is { } refused)
+            return NotRun(checks, Messages.SchedulerFailed(options.Value.NomadAddress, refused));
 
-            await StopAsync(job);
-
-            return NotRun(checks, $"the scan did not finish in {options.Value.ScanSeconds} s");
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            await StopAsync(job);
-            throw;
-        }
-        catch (Exception exception) when (exception is HttpRequestException or NomadException or TaskCanceledException)
-        {
-            await StopAsync(job);
-
-            return NotRun(checks, Messages.SchedulerFailed(options.Value.NomadAddress, exception.Message));
-        }
-    }
-
-    /// <summary>Stops a job the scan no longer waits for, with a token of its own: the caller's may be the one that was cancelled.</summary>
-    private async Task StopAsync(string job)
-    {
-        try
-        {
-            await nomad.StopJobAsync(job, purge: false, CancellationToken.None);
-        }
-        catch (Exception exception) when (exception is HttpRequestException or NomadException or TaskCanceledException)
-        {
-            return;
-        }
+        return NotRun(checks, $"the scan did not finish in {options.Value.ScanSeconds} s");
     }
 
     private static ScanOutcome NotRun(IReadOnlyCollection<Check> checks, string reason) =>
@@ -116,7 +75,7 @@ public sealed class NomadScanner(INomadClient nomad, IFixes fixes, IOptions<Secu
     {
         if (allocation.TaskStates?.GetValueOrDefault(ScannerJob.Stage)?.Failed == true)
         {
-            string said = (await LogsAsync(allocation.Id, ScannerJob.Stage, LogType.Stderr, ReasonBytes, cancellationToken)).Trim();
+            string said = (await batch.LogsAsync(allocation.Id, ScannerJob.Stage, LogType.Stderr, ReasonBytes, cancellationToken)).Trim();
 
             return NotRun(checks, said.Length > 0 ? $"the copy could not be staged: {said}" : "the copy could not be staged");
         }
@@ -134,7 +93,7 @@ public sealed class NomadScanner(INomadClient nomad, IFixes fixes, IOptions<Secu
 
             if (read is null || hasFailed)
             {
-                string said = (await LogsAsync(allocation.Id, task, LogType.Stderr, ReasonBytes, cancellationToken)).Trim();
+                string said = (await batch.LogsAsync(allocation.Id, task, LogType.Stderr, ReasonBytes, cancellationToken)).Trim();
                 string reason = said.Length > 0 ? said : "it printed no report";
                 runs.AddRange(covered.Select(check => new CheckRun(check, false, Messages.CheckFailed(ToolAnswer.Word(check), reason))));
                 continue;
@@ -157,24 +116,6 @@ public sealed class NomadScanner(INomadClient nomad, IFixes fixes, IOptions<Secu
             merged.Add(finding is { Check: Check.Packages, FixedIn: null, Package: { } package } ? finding with { FixedIn = await fixes.FixedInAsync(package, finding.Rule, cancellationToken) } : finding);
 
         return new ScanOutcome(merged, each);
-    }
-
-    private async Task<Allocation?> EndedAsync(string job, CancellationToken cancellationToken)
-    {
-        long started = clock.GetTimestamp();
-        var timeout = TimeSpan.FromSeconds(options.Value.ScanSeconds);
-
-        while (clock.GetElapsedTime(started) < timeout)
-        {
-            await Task.Delay(Poll, clock, cancellationToken);
-            var allocations = await nomad.ListAllocationsAsync(job, cancellationToken: cancellationToken);
-            var allocation = allocations.Items.Count > 0 ? allocations.Items[0] : null;
-
-            if (allocation is not null && Ended.Contains(allocation.ClientStatus, StringComparer.Ordinal))
-                return allocation;
-        }
-
-        return null;
     }
 
     /// <summary>
@@ -200,17 +141,5 @@ public sealed class NomadScanner(INomadClient nomad, IFixes fixes, IOptions<Secu
             return null;
 
         return task == ScannerJob.Trivy ? ScannerReports.Trivy(trimmed) : ScannerReports.Semgrep(trimmed);
-    }
-
-    private async Task<string> LogsAsync(string allocation, string task, LogType type, int bytes, CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await nomad.ReadLogsAsync(allocation, task, type, bytes, cancellationToken);
-        }
-        catch (NomadException exception) when (exception.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.BadRequest or HttpStatusCode.InternalServerError)
-        {
-            return string.Empty;
-        }
     }
 }

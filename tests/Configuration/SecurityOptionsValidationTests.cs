@@ -36,7 +36,16 @@ public sealed class SecurityOptionsValidationTests
         { new SecurityOptions { WorkspacesRoot = "workspaces" }, "SNAIL_MCP_SECURITY_WORKSPACES_ROOT" },
         { new SecurityOptions { TrivyImage = "aquasec/trivy:latest" }, "SNAIL_MCP_SECURITY_TRIVY_IMAGE" },
         { new SecurityOptions { SemgrepImage = "semgrep/semgrep:1.181.0" }, "SNAIL_MCP_SECURITY_SEMGREP_IMAGE" },
-        { new SecurityOptions { SdkImage = "mcr.microsoft.com/dotnet/sdk:10.0" }, "SNAIL_MCP_SECURITY_SDK_IMAGE" }
+        { new SecurityOptions { SdkImage = "mcr.microsoft.com/dotnet/sdk:10.0" }, "SNAIL_MCP_SECURITY_SDK_IMAGE" },
+        { new SecurityOptions { NmapImage = "instrumentisto/nmap:latest" }, "SNAIL_MCP_SECURITY_NMAP_IMAGE" },
+        { new SecurityOptions { NucleiImage = "projectdiscovery/nuclei:v3" }, "SNAIL_MCP_SECURITY_NUCLEI_IMAGE" },
+        { new SecurityOptions { SiteNetwork = "s3l-security" }, "SNAIL_MCP_SECURITY_SITE_NETWORK" },
+        { new SecurityOptions { SitePorts = "22,80,70000" }, "SNAIL_MCP_SECURITY_SITE_PORTS" },
+        { new SecurityOptions { SitePorts = "1-1024" }, "SNAIL_MCP_SECURITY_SITE_PORTS" },
+        { new SecurityOptions { SiteRequestsPerSecond = 0 }, "SNAIL_MCP_SECURITY_SITE_REQUESTS_PER_SECOND" },
+        { new SecurityOptions { SitePacketsPerSecond = -5 }, "SNAIL_MCP_SECURITY_SITE_PACKETS_PER_SECOND" },
+        { new SecurityOptions { NucleiTemplates = "http://example.com/t.tgz" }, "SNAIL_MCP_SECURITY_NUCLEI_TEMPLATES" },
+        { new SecurityOptions { NucleiTemplatesSha256 = "abc" }, "SNAIL_MCP_SECURITY_NUCLEI_TEMPLATES_SHA256" }
     };
 
     [Theory]

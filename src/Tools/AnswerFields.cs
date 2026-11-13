@@ -42,6 +42,26 @@ public static class AnswerFields
         return data;
     }
 
+    /// <summary>A site proven the customer's, as security_site_prove answers it.</summary>
+    public static JsonObject Of(SiteProof proof) => new()
+    {
+        ["site"] = proof.Site.Host,
+        ["provenBy"] = proof.ProvenBy,
+        ["record"] = Site.RecordOf(proof.ProvenBy),
+        ["note"] = Messages.Proven(proof.Site.Host, proof.ProvenBy)
+    };
+
+    /// <summary>A site's scan as security_site_scan answers it: the proof it was made under, then the scan as a copy's is told.</summary>
+    public static JsonObject Of(SiteScan scan, int shown)
+    {
+        var data = Of(scan.Report, shown);
+        data.Remove("since");
+        data.Insert(0, "site", scan.Proof.Site.Host);
+        data.Insert(1, "provenBy", scan.Proof.ProvenBy);
+
+        return data;
+    }
+
     /// <summary>A finding as a page and a scan carry it.</summary>
     public static JsonObject Of(Finding finding) => new()
     {
@@ -58,7 +78,7 @@ public static class AnswerFields
         ["nis2"] = new JsonArray([.. Compliance.Nis2(finding).Select(reference => JsonValue.Create(reference.Code))])
     };
 
-    /// <summary>What security_diagnose answers: the server's version, Nomad's, and the images, network and proxy scans run with.</summary>
+    /// <summary>What security_diagnose answers: the server's version, Nomad's, the images, network and proxy copy scans run with, and what site scans run with.</summary>
     public static JsonObject Of(string nomad, SecurityOptions settings) => new()
     {
         ["server"] = typeof(AnswerFields).Assembly.GetName().Version?.ToString(3),
@@ -69,6 +89,17 @@ public static class AnswerFields
         ["semgrepRules"] = new JsonArray([.. settings.SemgrepConfigs.Select(rules => JsonValue.Create(rules))]),
         ["network"] = settings.Network,
         ["proxy"] = settings.Proxy,
-        ["proxyHosts"] = new JsonArray([.. settings.ProxyHosts.Select(host => JsonValue.Create(host))])
+        ["proxyHosts"] = new JsonArray([.. settings.ProxyHosts.Select(host => JsonValue.Create(host))]),
+        ["sites"] = new JsonObject
+        {
+            ["nmap"] = settings.NmapImage,
+            ["nuclei"] = settings.NucleiImage,
+            ["templates"] = settings.NucleiTemplates,
+            ["templatesSha256"] = settings.NucleiTemplatesSha256,
+            ["network"] = settings.SiteNetwork,
+            ["ports"] = settings.SitePorts,
+            ["requestsPerSecond"] = settings.SiteRequestsPerSecond,
+            ["packetsPerSecond"] = settings.SitePacketsPerSecond
+        }
     };
 }

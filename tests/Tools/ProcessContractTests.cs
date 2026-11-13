@@ -37,7 +37,7 @@ public sealed class ProcessContractTests : IAsyncLifetime
 
         var tools = await session.ListToolsAsync(cancellationToken: cancellation.Token);
 
-        Assert.Equal(["security_diagnose", "security_findings", "security_scan"], tools.Select(tool => tool.Name).Order(StringComparer.Ordinal));
+        Assert.Equal(["security_diagnose", "security_findings", "security_scan", "security_site_prove", "security_site_scan"], tools.Select(tool => tool.Name).Order(StringComparer.Ordinal));
     }
 
     /// <summary>The guard rules of every Snail server, on the list a model receives.</summary>
@@ -167,6 +167,21 @@ public sealed class ProcessContractTests : IAsyncLifetime
         Assert.True(result.IsError);
         Assert.Equal(ToolFailures.Arguments, result.Type());
         Assert.Contains("checks", result.Text(), StringComparison.Ordinal);
+    }
+
+    /// <summary>An address is never a site: only a domain name can be proven the customer's, so the DNS is not even asked.</summary>
+    [Theory]
+    [InlineData("security_site_prove")]
+    [InlineData("security_site_scan")]
+    public async Task CallTool_SiteThatIsAnAddress_IsRefusedAsArguments(string tool)
+    {
+        using var cancellation = new CancellationTokenSource(Timeout);
+        await using var session = await SessionAsync(null, cancellation.Token);
+
+        var result = await session.CallToolAsync(tool, new Dictionary<string, object?> { ["site"] = "10.0.0.1" }, cancellationToken: cancellation.Token);
+
+        Assert.True(result.IsError);
+        Assert.Equal(ToolFailures.Arguments, result.Type());
     }
 
     /// <summary>A page in a browser always sends Origin and an agent's client never does: no web page may reach the scans.</summary>

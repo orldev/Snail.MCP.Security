@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
   "name": "io.github.orldev/snail-mcp-security",
-  "description": "Security checks of a working copy: packages, secrets, config and code, mapped to ENS and NIS2",
+  "description": "Security checks of a working copy and of a proven site, mapped to ENS and NIS2",
   "version": "0.2.0",
   "packages": [
     {
@@ -31,6 +31,12 @@
           "description": "Port the egress proxy for the scanners listens on inside the server; 0 keeps it off.",
           "isRequired": false,
           "default": "0"
+        },
+        {
+          "name": "SNAIL_MCP_SECURITY_SITE_NETWORK",
+          "description": "Docker network the site scanners run in: one that reaches the internet, never the copy scanners' internal one; drop private destinations on it. Default: s3l-security-sites.",
+          "isRequired": false,
+          "default": "s3l-security-sites"
         },
         {
           "name": "SNAIL_MCP_SECURITY_URL",

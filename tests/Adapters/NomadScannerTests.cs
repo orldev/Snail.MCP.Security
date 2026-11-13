@@ -66,7 +66,7 @@ public sealed class NomadScannerTests
         var http = new HttpClient(nomad) { BaseAddress = new Uri("http://nomad:4646/") };
         var client = new NomadClient(http, Options.Create(new NomadOptions { Address = "http://nomad:4646" }));
 
-        return new NomadScanner(client, new NoFixes(), Options.Create(settings), TimeProvider.System);
+        return new NomadScanner(client, new NomadBatch(client, TimeProvider.System), new NoFixes(), Options.Create(settings));
     }
 
     private sealed class NoFixes : IFixes
